@@ -124,6 +124,38 @@ svg{display:block}
 .msg.ok{padding:10px 12px;border-radius:10px;background:var(--ok-bg);color:var(--ok-tx)}
 .msg.mal{padding:10px 12px;border-radius:10px;background:var(--err-bg);color:var(--err-tx)}
 
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:14px 16px 0;padding:12px 14px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:14px;box-shadow:3px 3px 0 var(--tinta)}
+.anillo{flex:0 0 auto;color:var(--tinta)}
+.meta-txt{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+.meta-txt b{font-size:19px;line-height:1.2}
+.meta-txt span{color:var(--lapiz);font-size:15px}
+.meta-txt small{color:var(--lapiz);font-size:13px}
+.btn-cofre{flex:1 1 100%;padding:12px 14px;background:var(--resalt);color:#17246B;border:2px solid var(--tinta);border-radius:12px;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 3px 0 var(--tinta);animation:tiembla 2.4s ease-in-out infinite}
+.btn-cofre:active{transform:translateY(2px);box-shadow:0 1px 0 var(--tinta)}
+.tag-ok{flex:1 1 100%;text-align:center;padding:6px 10px;border-radius:10px;background:var(--ok-bg);color:var(--ok-tx);font-weight:700;font-size:14px}
+.meta-fin{margin:0 0 18px;padding:14px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:14px;box-shadow:3px 3px 0 var(--tinta);display:flex;flex-direction:column;gap:10px}
+.meta-fin b{font-size:18px}
+.meta-fin-txt{margin:0 0 18px!important;color:var(--lapiz);font-size:15px}
+.cofre{padding:36px 20px 40px;text-align:center}
+.cofre h1{margin:0 0 8px;font-size:32px;line-height:1.1;font-weight:800}
+.cofre p{margin:0 0 14px;color:var(--lapiz)}
+.cofre-btn{display:block;width:min(72vw,270px);margin:34px auto 10px;padding:0;background:none;border:0;cursor:pointer;animation:tiembla 2.2s ease-in-out infinite}
+.cofre-btn:disabled{cursor:default;animation:none}
+.cofre-btn svg{width:100%;height:auto;overflow:visible}
+#brillo{opacity:0;transition:opacity .5s}
+.abierto #brillo{opacity:1}
+#tapa{transform-origin:80px 60px;transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
+#tapa.abierta{transform:translate(-4px,-26px) rotate(-14deg)}
+.chispas path{opacity:0;transform-box:fill-box;transform-origin:center}
+.abierto .chispas path{animation:chispa .8s ease-out forwards}
+.premio{margin:4px auto 20px;padding:14px 16px;max-width:290px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:14px;box-shadow:4px 4px 0 var(--tinta);animation:salta .5s cubic-bezier(.3,1.5,.5,1)}
+.premio strong{display:block;font-size:46px;line-height:1;font-weight:800}
+.premio span{color:var(--lapiz);font-weight:600}
+.premio.dorado{background:var(--resalt);color:#17246B}
+.premio.dorado span{color:#17246B}
+@keyframes tiembla{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-3deg)}94%{transform:rotate(3deg)}97%{transform:rotate(-2deg)}}
+@keyframes chispa{0%{opacity:0;transform:scale(.2) rotate(0)}40%{opacity:1;transform:scale(1.25) rotate(20deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+
 /* ---------- Lección ---------- */
 .lec-top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--papel);border-bottom:2px solid var(--tinta)}
 .cerrar{flex:0 0 auto;width:42px;height:42px;display:grid;place-items:center;border:2px solid var(--tinta);border-radius:12px;background:var(--tarjeta);cursor:pointer}
@@ -1067,7 +1099,7 @@ const IC = {
 
 /* ================= ESTADO ================= */
 const CLAVE = 'cuaderno-python-v1';
-let est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: true, intro: false, abiertas: {} };
+let est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: true, intro: false, abiertas: {}, meta: 50, hoy: null, metasCumplidas: 0, rachaMeta: 0, ultimaMeta: null };
 try {
   const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
   if (g && typeof g === 'object') est = { ...est, ...g };
@@ -1115,7 +1147,9 @@ const SONIDO = {
   ok()  { tono(659, 0, 0.14, 'triangle'); tono(880, 0.11, 0.24, 'triangle'); },
   mal() { tono(220, 0, 0.16, 'sawtooth', 0.09); tono(165, 0.13, 0.3, 'sawtooth', 0.09); },
   fin() { [523, 659, 784, 1047].forEach((f, i) => tono(f, i * 0.12, 0.22, 'triangle')); tono(1319, 0.5, 0.5, 'triangle', 0.14); },
-  tic() { tono(520, 0, 0.05, 'sine', 0.07); }
+  tic() { tono(520, 0, 0.05, 'sine', 0.07); },
+  cofre() { [392, 523, 659, 784, 1047].forEach((f, i) => tono(f, i * 0.09, 0.26, 'triangle', 0.15)); tono(2093, 0.5, 0.45, 'sine', 0.06); },
+  cofreDorado() { [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tono(f, i * 0.08, 0.3, 'triangle', 0.15)); [2093, 2637, 3136].forEach((f, i) => tono(f, 0.6 + i * 0.1, 0.5, 'sine', 0.06)); }
 };
 function actualizarSonido() {
   document.querySelectorAll('.snd').forEach(b => {
@@ -1223,6 +1257,7 @@ function mostrarSalida(r) {
 function render() {
   if (vista === 'bienvenida') renderBienvenida();
   else if (vista === 'copia') renderCopia();
+  else if (vista === 'cofre') renderCofre();
   else if (vista === 'ruta') renderRuta();
   else if (vista === 'leccion') renderLeccion();
   else renderFin();
@@ -1310,6 +1345,7 @@ function renderRuta() {
       </div>
     </header>
     ${almacenOk ? '' : `<div class="aviso" role="alert"><b>Aquí no se puede guardar tu progreso.</b> Este visor borra los datos al cerrarlo. Ábrelo desde una dirección web (por ejemplo GitHub Pages) o guarda tu código con «Guardar o recuperar progreso» cada vez que termines.</div>`}
+    ${tarjetaMeta()}
     <div class="acc-barra"><button class="enlace" data-acc="abrir">Desplegar todo</button><button class="enlace" data-acc="cerrar">Plegar todo</button></div>
     <div class="ruta" id="ruta"><svg class="trazo" id="trazo" aria-hidden="true"></svg>${html}</div>
     <p class="nota">${actual === -1 ? '¡Completaste todas las lecciones disponibles! Vuelve pronto por más.<br>' : ''}El progreso se guarda en este navegador.<br>
@@ -1633,17 +1669,152 @@ function actualizarRacha() {
   if (est.ultimoDia !== hoyStr) { est.racha = est.ultimoDia === ayer() ? est.racha + 1 : 1; est.ultimoDia = hoyStr; }
 }
 
+/* ===== Meta diaria y cofre sorpresa ===== */
+const METAS = [{ pts: 30, nombre: 'Suave' }, { pts: 50, nombre: 'Normal' }, { pts: 100, nombre: 'Intensa' }];
+const nombreMeta = () => (METAS.find(m => m.pts === est.meta) || { nombre: 'Personal' }).nombre;
+
+// Puntos de hoy: se reinician solos cuando cambia el día
+function hoyEst() {
+  const d = hoy();
+  if (!est.hoy || est.hoy.dia !== d) est.hoy = { dia: d, xp: 0, cofre: null };
+  return est.hoy;
+}
+
+// Al llegar a la meta, el cofre queda "pendiente" hasta que se abra
+function revisarMeta() {
+  const h = hoyEst();
+  if (h.xp >= est.meta && !h.cofre) {
+    h.cofre = 'pendiente';
+    est.metasCumplidas = (est.metasCumplidas || 0) + 1;
+    est.rachaMeta = est.ultimaMeta === ayer() ? (est.rachaMeta || 0) + 1 : 1;
+    est.ultimaMeta = hoy();
+  }
+}
+
+function sumarPuntos(n) {
+  if (n <= 0) return;
+  est.xp += n;
+  hoyEst().xp += n;
+  revisarMeta();
+}
+
+function cambiarMeta() {
+  const i = METAS.findIndex(m => m.pts === est.meta);
+  est.meta = METAS[(i + 1) % METAS.length].pts;
+  revisarMeta();
+  guardar();
+  render();
+}
+
+const rachaMetaVigente = () => (est.ultimaMeta === hoy() || est.ultimaMeta === ayer()) ? (est.rachaMeta || 0) : 0;
+
+function anilloMeta() {
+  const h = hoyEst();
+  const pct = Math.min(1, h.xp / est.meta);
+  const C = 2 * Math.PI * 26;
+  return `<svg class="anillo" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Meta diaria: ${Math.min(h.xp, est.meta)} de ${est.meta} puntos">
+    <circle cx="36" cy="36" r="26" fill="none" stroke="var(--rejilla)" stroke-width="9"/>
+    <circle cx="36" cy="36" r="26" fill="none" stroke="var(--ok)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct)).toFixed(1)}" transform="rotate(-90 36 36)"/>
+    <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="800" fill="currentColor">${Math.round(pct * 100)}%</text>
+  </svg>`;
+}
+
+function tarjetaMeta() {
+  const h = hoyEst();
+  const hecha = h.xp >= est.meta;
+  const rc = rachaMetaVigente();
+  const cta = h.cofre === 'pendiente' ? '<button class="btn-cofre" id="btnCofre">¡Abrir cofre sorpresa!</button>'
+    : h.cofre === 'abierto' ? '<span class="tag-ok">Cofre de hoy abierto</span>' : '';
+  return `<section class="meta">
+    ${anilloMeta()}
+    <div class="meta-txt"><b>Meta de hoy</b>
+      <span>${hecha ? '¡Cumplida!' : h.xp + ' de ' + est.meta + ' puntos'}</span>
+      <button class="enlace" id="btnMeta" style="padding-left:0">Meta ${nombreMeta()}: cambiar</button>
+      ${est.metasCumplidas > 0 ? `<small>Metas cumplidas: ${est.metasCumplidas}${rc >= 2 ? ' · ' + rc + ' días seguidos' : ''}</small>` : ''}
+    </div>
+    ${cta}
+  </section>`;
+}
+
+function bloqueMetaFin() {
+  const h = hoyEst();
+  if (h.cofre === 'pendiente') return `<div class="meta-fin"><b>¡Cumpliste tu meta de hoy!</b><button class="btn-cofre" id="btnCofre">¡Abrir cofre sorpresa!</button></div>`;
+  if (h.xp < est.meta) return `<p class="meta-fin-txt">Meta de hoy: ${h.xp} de ${est.meta} puntos</p>`;
+  return '';
+}
+
+// Recompensa variable: casi siempre pequeña, a veces grande
+function sortearPremio() {
+  const r = Math.random();
+  if (r < 0.05) return { xp: 50, tipo: 'dorado', nombre: '¡Cofre dorado!' };
+  if (r < 0.20) return { xp: 30, tipo: 'raro', nombre: 'Cofre raro' };
+  if (r < 0.55) return { xp: 20, tipo: 'bueno', nombre: 'Cofre bueno' };
+  return { xp: 10, tipo: 'comun', nombre: 'Cofre común' };
+}
+
+const SVG_COFRE = `<svg viewBox="0 0 160 140" aria-hidden="true">
+  <defs><radialGradient id="gl"><stop offset="0" stop-color="#FFE066" stop-opacity=".95"/><stop offset="1" stop-color="#FFE066" stop-opacity="0"/></radialGradient></defs>
+  <circle id="brillo" cx="80" cy="66" r="76" fill="url(#gl)"/>
+  <ellipse cx="80" cy="130" rx="62" ry="8" fill="#17246B" opacity=".18"/>
+  <rect x="20" y="60" width="120" height="66" rx="8" fill="#FFC21A" stroke="#17246B" stroke-width="4"/>
+  <rect x="72" y="60" width="16" height="66" fill="#FFE066" stroke="#17246B" stroke-width="4"/>
+  <g id="tapa">
+    <path d="M20 60V46a26 26 0 0 1 26-26h68a26 26 0 0 1 26 26v14z" fill="#FFE066" stroke="#17246B" stroke-width="4" stroke-linejoin="round"/>
+    <rect x="72" y="20" width="16" height="40" fill="#FFC21A" stroke="#17246B" stroke-width="4"/>
+  </g>
+  <rect x="68" y="54" width="24" height="24" rx="5" fill="#17246B"/>
+  <circle cx="80" cy="64" r="4" fill="#FFE066"/>
+  <g class="chispas" fill="#FFC21A" stroke="#17246B" stroke-width="2" stroke-linejoin="round">
+    <path style="animation-delay:.05s" d="M22 24l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/>
+    <path style="animation-delay:.15s" d="M138 14l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+    <path style="animation-delay:.25s" d="M148 70l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/>
+    <path style="animation-delay:.35s" d="M8 78l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/>
+  </g>
+</svg>`;
+
+function renderCofre() {
+  const pendiente = hoyEst().cofre === 'pendiente';
+  $('#app').innerHTML = `
+    <main class="cofre" id="cofre">
+      <h1>${pendiente ? '¡Meta cumplida!' : 'Cofre de hoy'}</h1>
+      <p id="cofreTxt">${pendiente ? 'Lo lograste. Toca el cofre para ver tu sorpresa.' : 'Hoy ya abriste tu cofre. Mañana habrá otro si cumples tu meta.'}</p>
+      <button class="cofre-btn" id="btnAbrirCofre" aria-label="Abrir el cofre sorpresa" ${pendiente ? '' : 'disabled'}>${SVG_COFRE}</button>
+      <div id="premio" role="status"></div>
+      <button class="btn" id="btnRuta" style="${pendiente ? 'display:none' : ''}">Volver a la ruta</button>
+    </main>`;
+}
+
+function abrirCofre() {
+  const h = hoyEst();
+  if (h.cofre !== 'pendiente') return;
+  const premio = sortearPremio();
+  est.xp += premio.xp;          // el bonus suma a tu total, pero no cuenta para la meta de hoy
+  h.cofre = 'abierto';
+  guardar();
+  $('#cofre').classList.add('abierto');
+  $('#btnAbrirCofre').disabled = true;
+  $('#tapa').classList.add('abierta');
+  $('#cofreTxt').textContent = '¡Sorpresa!';
+  $('#premio').innerHTML = `<div class="premio ${premio.tipo}"><strong>+${premio.xp}</strong><span>puntos · ${premio.nombre}</span></div>`;
+  $('#btnRuta').style.display = 'block';
+  (premio.tipo === 'dorado' ? SONIDO.cofreDorado : SONIDO.cofre)();
+}
+
 function terminar() {
   const lec = LECCIONES[L.i];
+  const yaHecha = est.completadas.includes(lec.id);
   L.ganado = 0;
+  L.repaso = yaHecha;
   if (lec.esQuiz) {
     L.total = L.pasos.length;
     L.necesarios = Math.ceil(L.total * 0.7);
     L.aprobado = L.aciertos >= L.necesarios;
-    if (L.aprobado && !est.completadas.includes(lec.id)) { est.completadas.push(lec.id); est.xp += 50; L.ganado = 50; }
-  } else if (!est.completadas.includes(lec.id)) {
-    est.completadas.push(lec.id); est.xp += 30; L.ganado = 30;
+    if (L.aprobado) { L.ganado = yaHecha ? 15 : 50; if (!yaHecha) est.completadas.push(lec.id); }
+  } else {
+    L.ganado = yaHecha ? 10 : 30;
+    if (!yaHecha) est.completadas.push(lec.id);
   }
+  sumarPuntos(L.ganado);
   actualizarRacha();
   guardar();
   vista = 'fin';
@@ -1656,6 +1827,8 @@ function renderFin() {
   const sig = LECCIONES[L.i + 1];
   const u = UNIDADES.find(x => x.id === lec.unidad);
   const racha = `<div><strong>${rachaVigente()}</strong><span>${rachaVigente() === 1 ? 'día seguido' : 'días seguidos'}</span></div>`;
+  const puntos = `<div><strong>${L.ganado > 0 ? '+' + L.ganado : '0'}</strong><span>${L.ganado > 0 ? (L.repaso ? 'puntos por repasar' : 'puntos ganados') : 'sin puntos'}</span></div>`;
+  const meta = bloqueMetaFin();
   if (lec.esQuiz) {
     const ok = L.aprobado;
     $('#app').innerHTML = `
@@ -1665,10 +1838,10 @@ function renderFin() {
         <p>${ok ? 'Acertaste ' + L.aciertos + ' de ' + L.total + ' y terminaste «' + esc(u.titulo) + '». Buen trabajo.'
                : 'Acertaste ' + L.aciertos + ' de ' + L.total + '. Necesitas ' + L.necesarios + ' para aprobar. Repasa y vuelve a intentarlo: las preguntas cambian de orden.'}</p>
         <div class="res">
-          ${ok ? `<div><strong>${L.ganado > 0 ? '+' + L.ganado : '0'}</strong><span>${L.ganado > 0 ? 'puntos ganados' : 'ya lo habías aprobado'}</span></div>`
-               : `<div><strong>${L.aciertos}</strong><span>aciertos</span></div>`}
+          ${ok ? puntos : `<div><strong>${L.aciertos}</strong><span>aciertos</span></div>`}
           ${ok ? racha : `<div><strong>${L.necesarios}</strong><span>para aprobar</span></div>`}
         </div>
+        ${meta}
         ${ok && sig ? `<button class="btn" id="btnSig">Siguiente lección</button>` : ''}
         ${ok ? '' : `<button class="btn" id="btnReintentar">Intentar de nuevo</button>`}
         <button class="btn2" id="btnRuta" style="width:100%;margin-bottom:10px">Volver a la ruta</button>
@@ -1681,10 +1854,8 @@ function renderFin() {
       <span class="hexw"><span class="hex"><i>${IC.check}</i></span></span>
       <h1>¡Lección completada!</h1>
       <p>${esc(lec.titulo)}</p>
-      <div class="res">
-        <div><strong>${L.ganado > 0 ? '+' + L.ganado : '0'}</strong><span>${L.ganado > 0 ? 'puntos ganados' : 'ya la habías hecho'}</span></div>
-        ${racha}
-      </div>
+      <div class="res">${puntos}${racha}</div>
+      ${meta}
       ${sig ? `<button class="btn" id="btnSig">${sig.esQuiz ? 'Ir al quiz de la unidad' : 'Siguiente lección'}</button>` : ''}
       <button class="btn2" id="btnRuta" style="width:100%;margin-bottom:10px">Volver a la ruta</button>
       <button class="btn2" id="btnCopiarFin" style="width:100%">Copiar mi código de progreso</button>
@@ -1706,6 +1877,9 @@ document.addEventListener('click', e => {
     case 'btnPrincipal': return accionPrincipal();
     case 'btnEj': return botonEjecutar();
     case 'btnPista': return pista();
+    case 'btnCofre': vista = 'cofre'; return render();
+    case 'btnAbrirCofre': return abrirCofre();
+    case 'btnMeta': return cambiarMeta();
     case 'btnCopia': vista = 'copia'; return render();
     case 'btnCopiar': return copiarCodigo();
     case 'btnCopiarFin': return copiarRapido();
@@ -1724,7 +1898,7 @@ document.addEventListener('click', e => {
     case 'btnIntro': bv = 0; vista = 'bienvenida'; return render();
     case 'btnReiniciar':
       if (confirm('¿Borrar todo tu progreso en este navegador?')) {
-        est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: est.sonido, intro: true, abiertas: {} };
+        est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: est.sonido, intro: true, abiertas: {}, meta: est.meta, hoy: null, metasCumplidas: 0, rachaMeta: 0, ultimaMeta: null };
         guardar(); render();
       }
       return;
