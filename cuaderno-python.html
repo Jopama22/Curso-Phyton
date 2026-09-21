@@ -206,13 +206,27 @@ svg{display:block}
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PY_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
-// Función que los retos usan para probar el código del alumno con otros valores
-const AYUDANTE = `
+// Código Python que se carga una vez: ejecuta programas con un límite de tiempo (así un bucle infinito no congela la página)
+// y ofrece correr(), que los retos usan para probar el código del alumno con otros valores.
+const RUNNER = `
+def _ejecutar_limitado(src, ns, limite=3.0):
+    import sys, time
+    fin = time.time() + limite
+    def traza(frame, evento, arg):
+        if evento == 'line' and time.time() > fin:
+            raise TimeoutError('El programa tardó demasiado en terminar. ¿Hay un bucle que nunca se detiene?')
+        return traza
+    sys.settrace(traza)
+    try:
+        exec(compile(src, '<exec>', 'exec'), ns)
+    finally:
+        sys.settrace(None)
+
 def correr(src):
     import io, contextlib
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        exec(src, {})
+        _ejecutar_limitado(src, {}, 2.0)
     return buf.getvalue().strip()
 `;
 
@@ -727,6 +741,205 @@ const UNIDADES = [
         ] }
     ]}
   ]
+},
+{
+  id: 'bucles', titulo: 'Bucles', desc: 'Repetir instrucciones sin copiar y pegar.',
+  lecciones: [
+    { id: 'bucles-1', titulo: 'Repetir con for', pasos: [
+      { tipo: 'teoria', titulo: 'Repetir sin copiar y pegar', bloques: [
+        ['p', 'Un <b>bucle</b> repite unas líneas varias veces. El más común es <code>for</code> junto con <code>range()</code>.'],
+        ['code', `for i in range(3):\n    print("Hola")`],
+        ['out', `Hola\nHola\nHola`],
+        ['p', '<code>range(3)</code> produce los números 0, 1 y 2: son <b>3 vueltas</b>. En cada vuelta, la variable <code>i</code> toma uno de esos valores:'],
+        ['code', `for i in range(3):\n    print(i)`],
+        ['out', `0\n1\n2`],
+        ['p', 'Igual que con <code>if</code>: la línea del for termina en <code>:</code> y lo que se repite lleva sangría.']
+      ]},
+      { tipo: 'quiz', codigo: `for i in range(4):\n    print("A")`, pregunta: '¿Cuántas veces se muestra la letra A?',
+        opciones: ['3', '4', '5', '1'], correcta: 1,
+        explicacion: 'range(4) da 4 vueltas (0, 1, 2 y 3), y en cada una se ejecuta el print.' },
+      { tipo: 'quiz', codigo: `for i in range(3):\n    print(i)`, pregunta: '¿Qué números muestra este programa?',
+        opciones: ['1, 2 y 3', '0, 1 y 2', '0, 1, 2 y 3', 'Solo el 3'], correcta: 1,
+        explicacion: 'range(3) empieza en 0 y llega hasta el 2. El 3 nunca se incluye.' },
+      { tipo: 'reto', titulo: 'Cinco saludos',
+        enunciado: 'Con un bucle <code>for</code>, muestra 5 veces la palabra <code>Hola</code> (una por línea).',
+        inicial: '# Muestra 5 veces Hola con un bucle for\n',
+        pistas: ['Empieza con: for i in range(5):', 'En la línea siguiente, con sangría: print("Hola")'],
+        solucion: 'for i in range(5):\n    print("Hola")',
+        checks: [
+          { py: '"for" in codigo and "range" in codigo', msg: 'Usa un bucle for con range().' },
+          { py: 'salida.strip().splitlines() == ["Hola"] * 5', msg: 'Debe mostrar Hola exactamente 5 veces, una por línea.' }
+        ] },
+      { tipo: 'reto', titulo: 'Contar del 0 al 4',
+        enunciado: 'Muestra los números <code>0, 1, 2, 3, 4</code> (uno por línea) usando la variable del bucle.',
+        inicial: '# Muestra los números del 0 al 4\n',
+        pistas: ['range(5) da justo los números del 0 al 4.', 'for i in range(5): y dentro print(i)'],
+        solucion: 'for i in range(5):\n    print(i)',
+        checks: [
+          { py: '"for" in codigo and "range" in codigo', msg: 'Usa un bucle for con range().' },
+          { py: 'salida.strip().splitlines() == ["0", "1", "2", "3", "4"]', msg: 'Debe mostrar 0, 1, 2, 3 y 4, cada uno en su línea.' }
+        ] }
+    ]},
+    { id: 'bucles-2', titulo: 'range con inicio y paso', pasos: [
+      { tipo: 'teoria', titulo: 'Elegir dónde empezar y de cuánto en cuánto', bloques: [
+        ['p', '<code>range</code> acepta hasta tres números: <code>range(inicio, fin, paso)</code>. El <b>fin nunca se incluye</b>.'],
+        ['code', `for n in range(1, 4):\n    print(n)`],
+        ['out', `1\n2\n3`],
+        ['p', 'Con un tercer número saltas de a más de uno:'],
+        ['code', `for n in range(0, 10, 3):\n    print(n)`],
+        ['out', `0\n3\n6\n9`],
+        ['p', 'Y con un paso negativo cuentas hacia atrás:'],
+        ['code', `for n in range(3, 0, -1):\n    print(n)`],
+        ['out', `3\n2\n1`]
+      ]},
+      { tipo: 'quiz', codigo: `for n in range(2, 6):\n    print(n)`, pregunta: '¿Qué números muestra este programa?',
+        opciones: ['2, 3, 4 y 5', '2, 3, 4, 5 y 6', '3, 4, 5 y 6', 'Solo 2 y 6'], correcta: 0,
+        explicacion: 'Empieza en 2 y se detiene antes de llegar a 6, sin incluirlo.' },
+      { tipo: 'quiz', codigo: `for n in range(10, 0, -5):\n    print(n)`, pregunta: '¿Qué números muestra este programa?',
+        opciones: ['10 y 5', '10, 5 y 0', '5 y 0', 'Un error'], correcta: 0,
+        explicacion: 'Baja de 5 en 5 desde 10 y se detiene antes del 0, sin incluirlo: 10 y 5.' },
+      { tipo: 'reto', titulo: 'Cuenta regresiva',
+        enunciado: 'Muestra <code>5, 4, 3, 2, 1</code> (uno por línea) con un <code>for</code> y un <code>range</code> con paso negativo.',
+        inicial: '# Cuenta regresiva del 5 al 1\n',
+        pistas: ['Empieza en 5, termina antes del 0 y el paso es -1.', 'for n in range(5, 0, -1): y dentro print(n)'],
+        solucion: 'for n in range(5, 0, -1):\n    print(n)',
+        checks: [
+          { py: '"for" in codigo and "range" in codigo', msg: 'Usa un bucle for con range().' },
+          { py: 'salida.strip().splitlines() == ["5", "4", "3", "2", "1"]', msg: 'Debe mostrar 5, 4, 3, 2 y 1, cada uno en su línea.' }
+        ] },
+      { tipo: 'reto', titulo: 'Números pares',
+        enunciado: 'Muestra los números pares del 2 al 10 (<code>2, 4, 6, 8, 10</code>), uno por línea, usando el paso de <code>range</code>.',
+        inicial: '# Muestra los pares del 2 al 10\n',
+        pistas: ['Empieza en 2, el fin debe ser 11 (para incluir el 10) y el paso 2.', 'for n in range(2, 11, 2): y dentro print(n)'],
+        solucion: 'for n in range(2, 11, 2):\n    print(n)',
+        checks: [
+          { py: '"range" in codigo', msg: 'Usa range() con inicio, fin y paso.' },
+          { py: 'salida.strip().splitlines() == ["2", "4", "6", "8", "10"]', msg: 'Debe mostrar 2, 4, 6, 8 y 10, cada uno en su línea.' }
+        ] }
+    ]},
+    { id: 'bucles-3', titulo: 'Acumuladores', pasos: [
+      { tipo: 'teoria', titulo: 'Sumar y acumular dentro de un bucle', bloques: [
+        ['p', 'Un bucle puede ir <b>acumulando</b> un resultado: creas una variable antes del bucle y la vas actualizando en cada vuelta.'],
+        ['code', `total = 0\nfor n in range(1, 5):\n    total = total + n\nprint(total)`],
+        ['out', '10'],
+        ['p', 'Va sumando 1, 2, 3 y 4. Fíjate en que <code>print(total)</code> está <b>sin sangría</b>: se ejecuta una sola vez, al terminar el bucle.'],
+        ['p', 'Hay una forma corta: <code>total += n</code> es lo mismo que <code>total = total + n</code>. Y con <code>*=</code> se puede ir multiplicando.']
+      ]},
+      { tipo: 'quiz', codigo: `total = 0\nfor n in range(3):\n    total = total + 2\nprint(total)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['2', '6', '3', '0'], correcta: 1,
+        explicacion: 'Hay 3 vueltas y en cada una se suma 2: 2 + 2 + 2 = 6.' },
+      { tipo: 'quiz', codigo: `c = 0\nfor i in range(1, 4):\n    c += i\nprint(c)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['3', '4', '6', '10'], correcta: 2,
+        explicacion: 'i vale 1, 2 y 3, y se van sumando: 1 + 2 + 3 = 6.' },
+      { tipo: 'reto', titulo: 'Suma del 1 al 100',
+        enunciado: 'Con un bucle, calcula la suma de todos los números del 1 al 100 y muéstrala <b>una sola vez</b> al final.',
+        inicial: 'total = 0\n\n# Suma los números del 1 al 100 con un bucle\n\n# Muestra total\n',
+        pistas: ['for n in range(1, 101): y dentro total = total + n', 'print(total) va al final, sin sangría.'],
+        solucion: 'total = 0\nfor n in range(1, 101):\n    total = total + n\nprint(total)',
+        checks: [
+          { py: '"for" in codigo', msg: 'Usa un bucle for para sumar.' },
+          { py: 'salida.strip() == "5050"', msg: 'El resultado debe ser 5050, mostrado una sola vez. Revisa que print(total) no tenga sangría.' }
+        ] },
+      { tipo: 'reto', titulo: 'Factorial de 5',
+        enunciado: 'El factorial de 5 es 1 × 2 × 3 × 4 × 5. Calcúlalo con un bucle (empieza con <code>producto = 1</code>) y muéstralo al final.',
+        inicial: 'producto = 1\n\n# Multiplica los números del 1 al 5\n\n# Muestra producto\n',
+        pistas: ['for n in range(1, 6): y dentro producto = producto * n', 'print(producto) va al final, sin sangría.'],
+        solucion: 'producto = 1\nfor n in range(1, 6):\n    producto = producto * n\nprint(producto)',
+        checks: [
+          { py: '"for" in codigo', msg: 'Usa un bucle for para multiplicar.' },
+          { py: 'salida.strip() == "120"', msg: 'El resultado debe ser 120, mostrado una sola vez.' }
+        ] }
+    ]},
+    { id: 'bucles-4', titulo: 'Bucles con while', pasos: [
+      { tipo: 'teoria', titulo: 'Repetir mientras se cumpla una condición', bloques: [
+        ['p', 'Un <b>while</b> repite sus líneas mientras la condición sea verdadera. Sirve cuando no sabes cuántas vueltas harás.'],
+        ['code', `contador = 1\nwhile contador <= 3:\n    print(contador)\n    contador = contador + 1`],
+        ['out', `1\n2\n3`],
+        ['p', 'Dentro del bucle hay que cambiar algo para que la condición llegue a ser falsa. Si no, el bucle <b>nunca termina</b> (bucle infinito).'],
+        ['p', 'Regla práctica: usa <code>for</code> cuando sabes cuántas veces repetir, y <code>while</code> cuando depende de una condición. En esta página, si un programa tarda más de unos segundos, se detiene solo y te avisa.']
+      ]},
+      { tipo: 'quiz', codigo: `n = 3\nwhile n > 0:\n    print(n)\n    n = n - 1`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['3, 2 y 1', '3, 2, 1 y 0', '1, 2 y 3', 'Nunca termina'], correcta: 0,
+        explicacion: 'Mientras n sea mayor que 0 se muestra y se resta 1. Cuando n llega a 0 la condición es falsa y para.' },
+      { tipo: 'quiz', codigo: `x = 1\nwhile x < 5:\n    print(x)`, pregunta: '¿Qué pasa con este programa?',
+        opciones: ['Muestra 1 y termina', 'Muestra 1, 2, 3 y 4', 'Muestra 1 sin parar (bucle infinito)', 'Da un error'], correcta: 2,
+        explicacion: 'x nunca cambia dentro del bucle, así que x < 5 siempre es verdadero y el bucle no termina.' },
+      { tipo: 'reto', titulo: 'Contar hasta 5 con while',
+        enunciado: 'Empieza con <code>contador = 1</code> y, con un <code>while</code>, muestra los números del 1 al 5 (uno por línea).',
+        inicial: 'contador = 1\n\n# Muestra del 1 al 5 con un while\n',
+        pistas: ['La condición es: while contador <= 5:', 'Dentro del bucle: print(contador) y luego contador = contador + 1'],
+        solucion: 'contador = 1\nwhile contador <= 5:\n    print(contador)\n    contador = contador + 1',
+        checks: [
+          { py: '"while" in codigo', msg: 'Usa un bucle while.' },
+          { py: 'salida.strip().splitlines() == ["1", "2", "3", "4", "5"]', msg: 'Debe mostrar 1, 2, 3, 4 y 5, cada uno en su línea.' }
+        ] },
+      { tipo: 'reto', titulo: 'Duplicar hasta pasar de 100',
+        enunciado: 'Empieza con <code>valor = 1</code> y, con un <code>while</code>, multiplícalo por 2 mientras sea menor que 100. Al terminar, muestra el valor.',
+        inicial: 'valor = 1\n\n# Duplica valor mientras sea menor que 100\n\n# Muestra valor\n',
+        pistas: ['La condición es: while valor < 100:', 'Dentro del bucle: valor = valor * 2. Luego, sin sangría: print(valor)'],
+        solucion: 'valor = 1\nwhile valor < 100:\n    valor = valor * 2\nprint(valor)',
+        checks: [
+          { py: '"while" in codigo and "*" in codigo', msg: 'Usa un while y multiplica el valor por 2 dentro del bucle.' },
+          { py: 'salida.strip() == "128"', msg: 'El resultado debe ser 128 (1, 2, 4, 8, 16, 32, 64, 128), mostrado una sola vez.' }
+        ] }
+    ]},
+    { id: 'bucles-5', titulo: 'break y continue', pasos: [
+      { tipo: 'teoria', titulo: 'Detener o saltar una vuelta', bloques: [
+        ['p', '<b>break</b> detiene el bucle por completo:'],
+        ['code', `for n in range(1, 10):\n    if n == 4:\n        break\n    print(n)`],
+        ['out', `1\n2\n3`],
+        ['p', '<b>continue</b> salta el resto de esa vuelta y pasa a la siguiente:'],
+        ['code', `for n in range(1, 6):\n    if n == 3:\n        continue\n    print(n)`],
+        ['out', `1\n2\n4\n5`],
+        ['p', 'Ambos suelen ir dentro de un <code>if</code>.']
+      ]},
+      { tipo: 'quiz', codigo: `for n in range(5):\n    if n == 2:\n        break\n    print(n)`, pregunta: '¿Qué números muestra este programa?',
+        opciones: ['0 y 1', '0, 1 y 2', 'Solo 2', '0, 1, 3 y 4'], correcta: 0,
+        explicacion: 'Cuando n llega a 2, break detiene el bucle antes de mostrarlo. Solo se muestran 0 y 1.' },
+      { tipo: 'quiz', codigo: `for n in range(4):\n    if n == 1:\n        continue\n    print(n)`, pregunta: '¿Qué números muestra este programa?',
+        opciones: ['0, 2 y 3', '0, 1, 2 y 3', 'Solo 1', '0 y 2'], correcta: 0,
+        explicacion: 'Cuando n vale 1, continue se salta el print de esa vuelta, pero el bucle sigue con 2 y 3.' },
+      { tipo: 'reto', titulo: 'Saltar el 5',
+        enunciado: 'Muestra los números del 1 al 8 (uno por línea), <b>excepto el 5</b>. Usa <code>continue</code>.',
+        inicial: '# Muestra del 1 al 8 sin el 5\n',
+        pistas: ['for n in range(1, 9): y dentro un if n == 5:', 'Dentro del if escribe continue; después, fuera del if, print(n).'],
+        solucion: 'for n in range(1, 9):\n    if n == 5:\n        continue\n    print(n)',
+        checks: [
+          { py: '"continue" in codigo', msg: 'Usa continue para saltar el 5.' },
+          { py: 'salida.strip().splitlines() == ["1", "2", "3", "4", "6", "7", "8"]', msg: 'Debe mostrar del 1 al 8 sin el 5, cada número en su línea.' }
+        ] },
+      { tipo: 'reto', titulo: 'Detenerse a tiempo',
+        enunciado: 'Recorre los números del 1 al 99. Cuando encuentres el primero cuyo cuadrado (<code>n * n</code>) sea mayor que 50, muéstralo y detén el bucle con <code>break</code>.',
+        inicial: '# Encuentra el primer n con n * n mayor que 50\n',
+        pistas: ['for n in range(1, 100): y dentro if n * n > 50:', 'Dentro del if: print(n) y luego break.'],
+        solucion: 'for n in range(1, 100):\n    if n * n > 50:\n        print(n)\n        break',
+        checks: [
+          { py: '"break" in codigo', msg: 'Usa break para detener el bucle.' },
+          { py: 'salida.strip() == "8"', msg: 'Debe mostrar solo el 8 (8 * 8 = 64 es el primero que pasa de 50).' }
+        ] }
+    ]},
+    { id: 'bucles-6', titulo: 'Proyecto: tabla de multiplicar', pasos: [
+      { tipo: 'teoria', titulo: 'Bucles y f-strings juntos', bloques: [
+        ['p', 'Combinar un bucle con una f-string permite generar muchas líneas de texto con un solo <code>print</code>:'],
+        ['code', `for i in range(1, 4):\n    print(f"2 x {i} = {2 * i}")`],
+        ['out', `2 x 1 = 2\n2 x 2 = 4\n2 x 3 = 6`],
+        ['p', 'Dentro de las llaves puedes escribir variables y también cálculos.']
+      ]},
+      { tipo: 'quiz', codigo: `for i in range(1, 3):\n    print(f"{i} al cuadrado es {i ** 2}")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['1 al cuadrado es 1, y luego 2 al cuadrado es 4', 'i al cuadrado es i ** 2', '1 al cuadrado es 2, y luego 2 al cuadrado es 4', 'Un error'], correcta: 0,
+        explicacion: 'En cada vuelta las llaves se reemplazan: i vale 1 y luego 2, e i ** 2 vale 1 y luego 4.' },
+      { tipo: 'reto', titulo: 'Tabla del 7',
+        enunciado: 'Ya existe <code>numero = 7</code>. Muestra su tabla de multiplicar del 1 al 5 (una línea por cada uno) con este formato: <code>7 x 1 = 7</code>, <code>7 x 2 = 14</code>, etc. Usa <code>numero</code> dentro del bucle, para que funcione con cualquier valor.',
+        inicial: 'numero = 7\n\n# Muestra la tabla del 1 al 5 con un bucle y una f-string\n',
+        pistas: ['for i in range(1, 6): y dentro un print con f-string.', 'print(f"{numero} x {i} = {numero * i}")'],
+        solucion: 'numero = 7\nfor i in range(1, 6):\n    print(f"{numero} x {i} = {numero * i}")',
+        checks: [
+          { py: '"for" in codigo and "{numero" in codigo', msg: 'Usa un for y escribe {numero} dentro de la f-string, en vez del 7 a mano.' },
+          { py: `salida.strip().splitlines() == [f"7 x {i} = {7 * i}" for i in range(1, 6)]`, msg: 'Cada línea debe verse así: 7 x 1 = 7 (con espacios alrededor de x y de =).' },
+          { py: `correr(codigo.replace("numero = 7", "numero = 4")).splitlines() == [f"4 x {i} = {4 * i}" for i in range(1, 6)]`, msg: 'Con numero = 4 debería mostrar la tabla del 4. Usa la variable numero dentro del bucle.' }
+        ] }
+    ]}
+  ]
 }
 ];
 
@@ -803,6 +1016,24 @@ const QUIZ = {
       explicacion: '3 > 5 es False y not lo invierte: True.' },
     { codigo: `if x > 5\n    print("grande")`, pregunta: '¿Qué le falta a este código para funcionar?', opciones: ['Los dos puntos (:) al final del if', 'Un punto y coma al final', 'Comillas alrededor de x', 'Nada, está bien'], correcta: 0,
       explicacion: 'La línea del if debe terminar con dos puntos.' }
+  ],
+  bucles: [
+    { codigo: `for i in range(3):\n    print("X")`, pregunta: '¿Qué muestra este programa?', opciones: ['X tres veces, una por línea', 'X una sola vez', 'X cuatro veces', 'Un error'], correcta: 0,
+      explicacion: 'range(3) da 3 vueltas y en cada una se muestra una X.' },
+    { codigo: `for i in range(2, 5):\n    print(i)`, pregunta: '¿Qué números muestra este programa?', opciones: ['2, 3 y 4', '2, 3, 4 y 5', '3, 4 y 5', '2 y 5'], correcta: 0,
+      explicacion: 'Empieza en 2 y se detiene antes de llegar a 5.' },
+    { codigo: `for i in range(6, 0, -2):\n    print(i)`, pregunta: '¿Qué números muestra este programa?', opciones: ['6, 4 y 2', '6, 4, 2 y 0', '0, 2 y 4', '6, 5 y 4'], correcta: 0,
+      explicacion: 'Baja de 2 en 2 desde 6 y se detiene antes de llegar a 0.' },
+    { codigo: `t = 0\nfor n in range(1, 4):\n    t += n\nprint(t)`, pregunta: '¿Qué muestra este programa?', opciones: ['3', '6', '10', '4'], correcta: 1,
+      explicacion: 'n vale 1, 2 y 3 y se van sumando: 1 + 2 + 3 = 6. El print está fuera del bucle.' },
+    { codigo: `n = 5\nwhile n > 3:\n    print(n)\n    n -= 1`, pregunta: '¿Qué muestra este programa?', opciones: ['5 y 4', '5, 4 y 3', 'Solo 3', 'Nunca termina'], correcta: 0,
+      explicacion: 'Muestra 5 y 4. Cuando n llega a 3, la condición n > 3 ya es falsa.' },
+    { pregunta: '¿Cuándo conviene usar while en vez de for?', opciones: ['Cuando no sabes cuántas veces repetir y depende de una condición', 'Cuando quieres repetir exactamente 10 veces', 'Nunca: for sirve para todo', 'Cuando quieres guardar un valor en una variable'], correcta: 0,
+      explicacion: 'while repite mientras se cumpla una condición. for es mejor cuando ya sabes cuántas vueltas dar.' },
+    { codigo: `for n in range(5):\n    if n == 3:\n        break\n    print(n)`, pregunta: '¿Qué números muestra este programa?', opciones: ['0, 1 y 2', '0, 1, 2 y 3', 'Solo 3', '0, 1, 2 y 4'], correcta: 0,
+      explicacion: 'Cuando n llega a 3, break detiene el bucle antes de mostrarlo.' },
+    { codigo: `for n in range(4):\n    if n == 2:\n        continue\n    print(n)`, pregunta: '¿Qué números muestra este programa?', opciones: ['0, 1 y 3', '0, 1, 2 y 3', '0 y 1', 'Solo 2'], correcta: 0,
+      explicacion: 'Cuando n vale 2, continue salta esa vuelta. El bucle sigue con el 3.' }
   ]
 };
 UNIDADES.forEach(u => u.lecciones.push({
@@ -905,8 +1136,14 @@ function alternarSonido() {
 let py = null;
 let pyEstado = 'idle';
 
+// Carga el ejecutor con otro nombre de archivo ("<runner>") para que los errores señalen las líneas del código del alumno
+function cargarEjecutor() {
+  py.globals.set('_runner_src', RUNNER);
+  py.runPython("exec(compile(_runner_src, '<runner>', 'exec'))\ndel _runner_src");
+}
+
 async function iniciarPyodide() {
-  try { py = await window.loadPyodide({ indexURL: PY_URL }); pyEstado = 'listo'; }
+  try { py = await window.loadPyodide({ indexURL: PY_URL }); cargarEjecutor(); pyEstado = 'listo'; }
   catch (e) { pyEstado = 'error'; }
   estadoPy();
 }
@@ -948,18 +1185,24 @@ function traducirError(msg) {
   else if (/^IndentationError/.test(ultima)) ayuda = 'Revisa la sangría: las líneas dentro de un if, elif o else llevan 4 espacios al inicio (usa la tecla Tab) y las demás, ninguno.';
   else if (/^SyntaxError: expected ':'/.test(ultima)) ayuda = 'Falta el signo : (dos puntos) al final de la línea del if, elif o else.';
   else if (/^SyntaxError/.test(ultima)) ayuda = 'Hay un error de escritura: revisa que las comillas y los paréntesis estén cerrados.';
+  else if (/^TimeoutError/.test(ultima)) ayuda = 'Tu programa no termina. Revisa que la condición del while llegue a ser falsa (por ejemplo, que el contador cambie dentro del bucle).';
   else if (/^TypeError/.test(ultima)) ayuda = 'Estás mezclando valores que no se pueden combinar así, por ejemplo texto con números.';
   return { ultima, linea, ayuda };
 }
 
 async function ejecutar(codigo) {
   const lineas = [];
-  py.setStdout({ batched: s => lineas.push(s) });
-  py.setStderr({ batched: s => lineas.push(s) });
+  let recortada = false;
+  const guardarLinea = s => { if (lineas.length < 300) lineas.push(s); else recortada = true; };
+  py.setStdout({ batched: guardarLinea });
+  py.setStderr({ batched: guardarLinea });
   const ns = py.runPython('dict()');
   let error = null;
-  try { py.runPython(codigo, { globals: ns }); }
+  const ejec = py.globals.get('_ejecutar_limitado');
+  try { ejec(codigo, ns); }
   catch (e) { error = traducirError(e.message || e); }
+  finally { ejec.destroy(); }
+  if (recortada) lineas.push('… (salida recortada)');
   try { py.runPython('import sys\nsys.stdout.flush()'); } catch (e) {}
   return { salida: lineas.join('\n'), error, ns };
 }
@@ -1056,7 +1299,7 @@ function renderRuta() {
     });
     html += `</div>`;
   });
-  html += `<section class="unidad proximo"><span class="u-tit">Próximamente</span><span class="u-desc">Bucles, listas y funciones.</span></section>`;
+  html += `<section class="unidad proximo"><span class="u-tit">Próximamente</span><span class="u-desc">Listas, funciones y más.</span></section>`;
   $('#app').innerHTML = `
     <header class="barra">
       <div class="marca">Cuaderno de Python</div>
@@ -1343,7 +1586,9 @@ async function comprobarReto() {
   if (r.error) { r.ns.destroy(); SONIDO.mal(); setFb('mal', 'Tu código tiene un error.', ' Corrígelo y vuelve a comprobar.'); return; }
   r.ns.set('salida', r.salida);
   r.ns.set('codigo', codigo);
-  try { py.runPython(AYUDANTE, { globals: r.ns }); } catch (e) {}
+  const fnCorrer = py.globals.get('correr');
+  r.ns.set('correr', fnCorrer);
+  fnCorrer.destroy();
   let fallo = null;
   for (const c of p.checks) {
     let ok = false;
