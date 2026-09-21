@@ -1,0 +1,1523 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F9FE">
+<title>Cuaderno de Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F6F9FE; --rejilla:#DCE6F6; --tinta:#17246B; --lapiz:#4B5678; --linea:#BFCDE8;
+  --tarjeta:#FFFFFF; --margen:#E5484D; --resalt:#FFE066;
+  --ok:#1E9E6A; --ok-btn:#147A52; --ok-bg:#DDF4E8; --ok-tx:#0F6B47;
+  --err:#C9303B; --err-bg:#FCE3E4; --err-tx:#A31F2A;
+  --codigo-bg:#111B4A; --codigo-tx:#E9EEFF; --codigo-dim:#8C9AD1;
+  --sans:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --papel:#0E1330; --rejilla:#1A2354; --tinta:#E9EEFF; --lapiz:#A9B4DD; --linea:#33407F;
+    --tarjeta:#161D45; --margen:#FF6B75;
+    --ok:#4FD69C; --ok-bg:#12382B; --ok-tx:#7BE5B8;
+    --err:#FF7A84; --err-bg:#43191D; --err-tx:#FF9AA1;
+    --codigo-bg:#0A0F2B;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100%;
+  font-family:var(--sans); font-size:17px; line-height:1.5; color:var(--tinta);
+  background-color:var(--papel);
+  background-image:linear-gradient(var(--rejilla) 1px,transparent 1px),linear-gradient(90deg,var(--rejilla) 1px,transparent 1px);
+  background-size:24px 24px;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tinta);outline-offset:2px}
+#app{max-width:560px;margin:0 auto;min-height:100vh}
+b{font-weight:800}
+code{font-family:var(--mono);font-size:.9em;background:var(--rejilla);padding:1px 6px;border-radius:6px}
+svg{display:block}
+
+/* ---------- Ruta ---------- */
+.barra{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 16px; background:var(--papel); border-bottom:2px solid var(--tinta);
+}
+.marca{font-weight:800;font-size:20px;letter-spacing:-.01em;line-height:1.1}
+.datos{display:flex;gap:8px;align-items:center}
+.dato{display:flex;align-items:center;gap:6px;font-weight:800;padding:5px 10px;border:2px solid var(--tinta);border-radius:999px;background:var(--tarjeta);font-size:16px}
+.snd{flex:0 0 auto;display:grid;place-items:center;width:42px;height:38px;border:2px solid var(--tinta);border-radius:999px;background:var(--tarjeta);color:var(--tinta);cursor:pointer}
+.lec-top .snd{height:42px;border-radius:12px}
+.ruta .unidad{align-self:stretch;position:relative;z-index:1;margin:0 16px;padding:16px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:14px;box-shadow:4px 4px 0 var(--tinta)}
+.u-cab{display:flex;align-items:center;gap:12px;width:100%;padding:0;background:none;border:0;text-align:left;cursor:pointer;color:inherit}
+.u-txt{flex:1;min-width:0}
+.u-tit{display:flex;align-items:center;gap:8px;font-size:24px;line-height:1.15;font-weight:800}
+.u-desc{display:block;margin-top:2px;color:var(--lapiz);font-size:15px}
+.chev{flex:0 0 auto;transition:transform .2s}
+.u-cab[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.u-lecs{align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:26px;padding:6px 0 4px}
+.u-lecs[hidden]{display:none}
+.ruta .unidad.proximo{border-style:dashed;border-color:var(--linea);box-shadow:none;background:transparent}
+.unidad.proximo .u-tit{color:var(--lapiz)}
+.aviso{margin:14px 16px 0;padding:12px 14px;background:var(--resalt);color:#17246B;border:2px solid var(--tinta);border-radius:12px;font-size:15px;line-height:1.4}
+.aviso b{display:block}
+.acc-barra{display:flex;justify-content:flex-end;gap:14px;padding:8px 16px 0}
+.meter{margin-top:12px;height:10px;border-radius:99px;background:var(--rejilla);border:2px solid var(--tinta);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok)}
+.ruta{position:relative;display:flex;flex-direction:column;align-items:center;gap:26px;padding:20px 0 40px}
+.trazo{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.trazo path{fill:none;stroke:var(--linea);stroke-width:5;stroke-dasharray:1 11;stroke-linecap:round}
+.trazo path.hecho{stroke:var(--ok)}
+.nodo{
+  position:relative; z-index:1; width:150px; padding:0; border:0; background:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  transform:translateX(var(--dx,0px));
+}
+.nodo:disabled{cursor:default}
+.hexw{filter:drop-shadow(3px 4px 0 var(--tinta))}
+.hex{display:grid;place-items:center;width:78px;height:86px;background:var(--tinta);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.hex i{display:grid;place-items:center;width:68px;height:76px;background:var(--tarjeta);color:var(--tinta);font-style:normal;font-weight:800;font-size:26px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.nodo.hecho .hex i{background:var(--ok-btn);color:#fff}
+.nodo.actual .hex i{background:var(--resalt);color:#17246B}
+.nodo.quiz:not(.bloq) .hex{background:var(--margen)}
+.nodo.bloq .hexw{filter:drop-shadow(3px 4px 0 var(--linea))}
+.nodo.bloq .hex{background:var(--linea)}
+.nodo.bloq .hex i{background:var(--rejilla);color:var(--lapiz)}
+.nodo .nombre{font-weight:600;font-size:15px;line-height:1.2;text-align:center;background:var(--papel);padding:2px 8px;border-radius:8px}
+.nodo.bloq .nombre{color:var(--lapiz)}
+.burbuja{position:relative;background:var(--tinta);color:var(--papel);padding:3px 12px;border-radius:8px;font-weight:800;font-size:15px}
+.burbuja::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--tinta)}
+.nota{margin:0 16px;padding-bottom:28px;text-align:center;color:var(--lapiz);font-size:14px}
+.enlace{background:none;border:0;padding:4px;text-decoration:underline;cursor:pointer;color:var(--lapiz);font-size:14px}
+
+/* ---------- Bienvenida ---------- */
+.bv{display:flex;flex-direction:column;min-height:100vh;padding:32px 20px 28px}
+.bv-cuerpo{flex:1}
+.bv h1{margin:0 0 12px;font-size:36px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+.bv p{margin:0 0 16px;max-width:60ch}
+.bv .cod{margin:22px 0 10px}
+.bv .sal{margin:0 0 14px}
+.puntos{display:flex;gap:8px;justify-content:center;margin:18px 0}
+.punto{width:10px;height:10px;border-radius:99px;background:var(--linea)}
+.punto.act{width:28px;background:var(--tinta)}
+.como{list-style:none;margin:22px 0;padding:0}
+.como li{display:flex;gap:12px;align-items:flex-start;margin:0 0 12px;padding:12px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:12px;box-shadow:3px 3px 0 var(--tinta)}
+.como .n{flex:0 0 32px;height:32px;display:grid;place-items:center;background:var(--resalt);color:#17246B;border-radius:50%;font-weight:800}
+
+.copia{padding:28px 20px 40px}
+.copia h1{margin:0 0 12px;font-size:30px;line-height:1.1;font-weight:800;letter-spacing:-.015em}
+.copia h2{margin:0 0 6px;font-size:20px;font-weight:800}
+.copia p{margin:0 0 12px;max-width:62ch}
+.cuadro{display:block;width:100%;padding:10px;background:var(--tarjeta);color:var(--tinta);border:2px solid var(--tinta);border-radius:12px;font:400 14px/1.4 var(--mono);word-break:break-all;resize:vertical}
+.msg{min-height:0;margin-bottom:10px;font-weight:600;font-size:15px}
+.msg.ok{padding:10px 12px;border-radius:10px;background:var(--ok-bg);color:var(--ok-tx)}
+.msg.mal{padding:10px 12px;border-radius:10px;background:var(--err-bg);color:var(--err-tx)}
+
+/* ---------- Lección ---------- */
+.lec-top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--papel);border-bottom:2px solid var(--tinta)}
+.cerrar{flex:0 0 auto;width:42px;height:42px;display:grid;place-items:center;border:2px solid var(--tinta);border-radius:12px;background:var(--tarjeta);cursor:pointer}
+.progreso{flex:1;display:flex;gap:5px}
+.seg{flex:1;height:10px;border-radius:99px;background:var(--linea)}
+.seg.hecho{background:var(--ok)}
+.seg.actual{background:var(--tinta)}
+.hoja{position:relative;padding:18px 16px 240px 36px}
+.hoja::before{content:"";position:absolute;left:22px;top:0;bottom:0;width:2px;background:var(--margen);opacity:.75}
+.hoja h1{margin:0 0 12px;font-size:30px;line-height:1.1;font-weight:800;letter-spacing:-.015em}
+.hoja p{margin:0 0 14px;max-width:62ch}
+.sobre{position:relative;margin-left:-20px}
+.cod{margin:0 0 14px -20px;padding:12px 14px;background:var(--codigo-bg);color:var(--codigo-tx);border:2px solid var(--tinta);border-radius:12px;font:400 15px/1.55 var(--mono);overflow-x:auto;white-space:pre}
+.cod code{background:none;padding:0;font-size:inherit}
+.sal{margin:0 0 14px -20px;padding:8px 14px 10px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:12px}
+.sal .etq{display:block;font-size:13px;color:var(--lapiz);font-weight:600}
+.sal pre{margin:2px 0 0;font:400 15px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word}
+.sal.err{border-color:var(--err)}
+.sal.err pre{color:var(--err-tx)}
+.preg{font-weight:600;font-size:19px}
+.ops{display:grid;gap:10px}
+.op{width:100%;text-align:left;padding:13px 14px;background:var(--tarjeta);border:2px solid var(--linea);border-radius:12px;cursor:pointer;font-family:var(--mono);font-size:16px}
+.op[aria-pressed="true"]{border-color:var(--tinta);background:var(--resalt);color:#17246B}
+.op.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok-tx)}
+.op.mal{border-color:var(--err);background:var(--err-bg);color:var(--err-tx)}
+.op:disabled{cursor:default}
+.editor{display:block;width:100%;min-height:176px;resize:vertical;margin:0;padding:12px;background:var(--codigo-bg);color:var(--codigo-tx);border:2px solid var(--tinta);border-radius:12px 12px 0 0;font:400 16px/1.55 var(--mono);tab-size:4;white-space:pre;overflow:auto;caret-color:var(--resalt)}
+.teclas{display:flex;gap:6px;overflow-x:auto;padding:8px;background:var(--tarjeta);border:2px solid var(--tinta);border-top:0;border-radius:0 0 12px 12px}
+.tecla{flex:0 0 auto;min-width:42px;height:40px;padding:0 10px;border:2px solid var(--linea);border-radius:8px;background:var(--papel);color:var(--tinta);font:600 16px var(--mono);cursor:pointer}
+.acciones{display:flex;gap:10px;margin:14px 0}
+.btn2{flex:1;padding:11px 12px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 var(--tinta)}
+.btn2:active{transform:translateY(2px);box-shadow:0 1px 0 var(--tinta)}
+.btn2:disabled{border-color:var(--linea);color:var(--lapiz);box-shadow:none;cursor:not-allowed}
+.pista{margin:0 0 10px -20px;padding:10px 14px;background:var(--resalt);color:#17246B;border-radius:10px;font-weight:600;font-size:15px}
+.pista pre{margin:8px 0 0}
+.estado{margin:6px 0 0;font-size:14px;color:var(--lapiz)}
+.estado[data-e="error"]{color:var(--err-tx);font-weight:600}
+.estado[data-e="listo"]{color:var(--ok-tx)}
+
+.pie{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--papel);border-top:2px solid var(--tinta);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.pie-in{max-width:560px;margin:0 auto}
+.fb{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-bottom:10px;border-radius:10px;font-weight:600;font-size:15px;line-height:1.35;animation:entra .18s ease-out}
+.fb.ok{background:var(--ok-bg);color:var(--ok-tx)}
+.fb.mal{background:var(--err-bg);color:var(--err-tx)}
+.fb.mal{animation:entra .18s ease-out,sacude .3s .05s}
+.fb b{display:block}
+@keyframes entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes sacude{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.btn{width:100%;padding:14px;background:var(--resalt);color:#17246B;border:2px solid var(--tinta);border-radius:14px;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 4px 0 var(--tinta)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--tinta)}
+.btn.ok{background:var(--ok-btn);color:#fff}
+.btn:disabled{background:var(--rejilla);color:var(--lapiz);border-color:var(--linea);box-shadow:none;cursor:not-allowed}
+
+/* ---------- Fin ---------- */
+.fin{padding:48px 24px 40px;text-align:center}
+.fin .hexw{display:inline-block;margin-bottom:22px;animation:salta .5s cubic-bezier(.3,1.5,.5,1)}
+.fin .hex{width:110px;height:122px}
+.fin .hex i{width:98px;height:110px;background:var(--ok-btn);color:#fff;font-size:30px}
+.fin .hex.flojo i{background:var(--resalt);color:#17246B}
+.fin h1{margin:0 0 6px;font-size:32px;line-height:1.1;font-weight:800}
+.fin p{margin:0 0 22px;color:var(--lapiz)}
+.res{display:flex;gap:12px;justify-content:center;margin-bottom:28px}
+.res div{min-width:130px;padding:12px;background:var(--tarjeta);border:2px solid var(--tinta);border-radius:14px;box-shadow:3px 3px 0 var(--tinta)}
+.res strong{display:block;font-size:26px;line-height:1.1}
+.res span{font-size:14px;color:var(--lapiz)}
+.fin .btn{margin-bottom:14px}
+@keyframes salta{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript>Esta página necesita JavaScript para funcionar.</noscript>
+
+<script>
+(() => {
+'use strict';
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PY_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+// Función que los retos usan para probar el código del alumno con otros valores
+const AYUDANTE = `
+def correr(src):
+    import io, contextlib
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        exec(src, {})
+    return buf.getvalue().strip()
+`;
+
+/* ================= CONTENIDO ================= */
+const UNIDADES = [
+{
+  id: 'intro', titulo: 'Introducción', desc: 'Qué es programar y cómo escribir tu primer programa.',
+  lecciones: [
+    { id: 'intro-1', titulo: '¿Qué es programar?', pasos: [
+      { tipo: 'teoria', titulo: 'Dar instrucciones a la computadora', bloques: [
+        ['p', 'Un <b>programa</b> es una lista de instrucciones que la computadora sigue una por una, sin adivinar nada. <b>Python</b> es un lenguaje para escribir esas instrucciones, y es de los más fáciles de leer.'],
+        ['p', 'Se usa para páginas web, análisis de datos, inteligencia artificial y para automatizar tareas aburridas.'],
+        ['code', `print("Hola")\nprint("¿Cómo estás?")`],
+        ['out', `Hola\n¿Cómo estás?`],
+        ['p', 'Python lee el programa de <b>arriba hacia abajo</b>, línea por línea. <code>print()</code> significa «mostrar en pantalla».']
+      ]},
+      { tipo: 'quiz', pregunta: '¿En qué orden ejecuta Python las instrucciones?',
+        opciones: ['De abajo hacia arriba', 'De arriba hacia abajo, línea por línea', 'Al azar', 'Todas a la vez'], correcta: 1,
+        explicacion: 'Python empieza en la primera línea y avanza hacia abajo, una instrucción a la vez.' },
+      { tipo: 'quiz', codigo: `print("Uno")\nprint("Dos")\nprint("Tres")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['Uno, Dos y Tres en tres líneas', 'Tres, Dos y Uno en tres líneas', 'Solo Uno', 'Un error'], correcta: 0,
+        explicacion: 'Cada print() escribe su texto en una línea nueva, en el mismo orden en que aparecen.' },
+      { tipo: 'reto', titulo: 'Tu primer programa',
+        enunciado: 'Escribe un programa que muestre en pantalla el texto: <code>¡Hola, mundo!</code>',
+        inicial: '# Escribe tu código aquí\n',
+        pistas: ['Usa print() y escribe el texto entre comillas dentro de los paréntesis.', 'Quedaría: print("¡Hola, mundo!")'],
+        solucion: 'print("¡Hola, mundo!")',
+        checks: [
+          { py: '"print" in codigo', msg: 'Usa print() para mostrar el texto.' },
+          { py: 'salida.strip() == "¡Hola, mundo!"', msg: 'El texto debe ser exactamente: ¡Hola, mundo!' }
+        ] }
+    ]},
+    { id: 'intro-2', titulo: 'Todo sobre print', pasos: [
+      { tipo: 'teoria', titulo: 'Qué puedes mostrar con print', bloques: [
+        ['p', 'Lo que va entre comillas es <b>texto</b> y se muestra tal cual. Sirven comillas dobles o simples, pero hay que cerrar las mismas que abriste.'],
+        ['code', `print("Hola")\nprint('Hola')`],
+        ['out', `Hola\nHola`],
+        ['p', 'Sin comillas, Python trata el contenido como un cálculo o un número:'],
+        ['code', `print(2 + 3)\nprint("2 + 3")`],
+        ['out', `5\n2 + 3`],
+        ['p', 'Para mostrar varias cosas en una línea, sepáralas con comas. Python pone un espacio entre ellas.'],
+        ['code', `print("Edad:", 12)`],
+        ['out', 'Edad: 12']
+      ]},
+      { tipo: 'quiz', codigo: `print("2 + 3")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['5', '2 + 3', 'Un error', '23'], correcta: 1,
+        explicacion: 'Las comillas convierten todo en texto, así que no se calcula nada: se muestra tal cual.' },
+      { tipo: 'quiz', codigo: `print("Edad:", 12)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['Edad:12', 'Edad: 12', '"Edad:" 12', 'Un error'], correcta: 1,
+        explicacion: 'Con la coma, print() separa los valores con un espacio y no muestra las comillas.' },
+      { tipo: 'reto', titulo: 'Sumar en pantalla',
+        enunciado: 'Muestra el resultado de <code>15 + 27</code> con <code>print()</code>. Deja que Python haga la suma; no escribas el resultado tú.',
+        inicial: '# Muestra el resultado de 15 + 27\n',
+        pistas: ['Dentro del paréntesis escribe la suma, sin comillas.', 'Quedaría: print(15 + 27)'],
+        solucion: 'print(15 + 27)',
+        checks: [
+          { py: '"+" in codigo', msg: 'Escribe la suma con el signo + para que Python la calcule.' },
+          { py: 'salida.strip() == "42"', msg: 'Debe mostrar el resultado de la suma. ¿Quitaste las comillas?' }
+        ] },
+      { tipo: 'reto', titulo: 'Dos valores en una línea',
+        enunciado: 'Con un solo <code>print()</code> y una coma, muestra exactamente: <code>Puntos: 100</code>',
+        inicial: '# Un solo print con una coma\n',
+        pistas: ['Primero el texto "Puntos:", luego una coma y después el número 100 sin comillas.', 'Quedaría: print("Puntos:", 100)'],
+        solucion: 'print("Puntos:", 100)',
+        checks: [
+          { py: '"," in codigo', msg: 'Separa los dos valores con una coma dentro del print().' },
+          { py: 'salida.strip() == "Puntos: 100"', msg: 'Debe mostrar exactamente: Puntos: 100' }
+        ] }
+    ]},
+    { id: 'intro-3', titulo: 'Comentarios y errores', pasos: [
+      { tipo: 'teoria', titulo: 'Notas para personas y errores útiles', bloques: [
+        ['p', 'Una línea que empieza con <code>#</code> es un <b>comentario</b>: Python la ignora. Sirve para explicar el código a quien lo lea (incluido tú en el futuro).'],
+        ['code', `# Saludo inicial\nprint("Hola")  # esto también es comentario`],
+        ['out', 'Hola'],
+        ['p', 'Equivocarse es normal. Cuando algo falla, Python te dice el tipo de error y en qué línea. Por ejemplo, olvidar cerrar unas comillas:'],
+        ['code', `print("Hola)`],
+        ['out', 'SyntaxError: unterminated string literal (detected at line 1)'],
+        ['p', 'Aprender a leer esos mensajes es la mitad del oficio de programar.']
+      ]},
+      { tipo: 'quiz', codigo: `# print("Hola")\nprint("Adiós")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['Hola', 'Adiós', 'Hola y Adiós', 'Un error'], correcta: 1,
+        explicacion: 'La primera línea es un comentario, así que Python la ignora.' },
+      { tipo: 'reto', titulo: 'Arregla el error',
+        enunciado: 'Este programa no funciona. Corrígelo para que muestre: <code>Hola, Python</code>',
+        inicial: '# Este programa tiene un error\nprint("Hola, Python)\n',
+        pistas: ['Fíjate en las comillas: una se abre pero no se cierra.', 'Falta una comilla doble antes del paréntesis final.'],
+        solucion: 'print("Hola, Python")',
+        checks: [
+          { py: 'salida.strip() == "Hola, Python"', msg: 'Debe mostrar exactamente: Hola, Python' }
+        ] },
+      { tipo: 'reto', titulo: 'Comentar una línea',
+        enunciado: 'Convierte en comentario la línea del <code>"Dos"</code> para que solo se muestren <code>Uno</code> y <code>Tres</code>.',
+        inicial: 'print("Uno")\nprint("Dos")\nprint("Tres")\n',
+        pistas: ['Escribe # al principio de la línea que quieres desactivar.', 'La línea debe quedar: # print("Dos")'],
+        solucion: 'print("Uno")\n# print("Dos")\nprint("Tres")',
+        checks: [
+          { py: '"#" in codigo', msg: 'Usa # para convertir la línea en comentario, sin borrarla.' },
+          { py: 'salida.strip().splitlines() == ["Uno", "Tres"]', msg: 'Deben mostrarse solo Uno y Tres, cada uno en su línea.' }
+        ] }
+    ]}
+  ]
+},
+{
+  id: 'variables', titulo: 'Variables', desc: 'Guardar y reutilizar valores en tus programas.',
+  lecciones: [
+    { id: 'variables-1', titulo: 'Tu primera variable', pasos: [
+      { tipo: 'teoria', titulo: '¿Qué es una variable?', bloques: [
+        ['p', 'Una <b>variable</b> es un nombre que guarda un valor, como una etiqueta pegada a una caja.'],
+        ['code', `nombre = "Ana"\nprint(nombre)`],
+        ['out', 'Ana'],
+        ['p', 'El signo <code>=</code> no compara nada: <b>guarda</b> el valor de la derecha bajo el nombre de la izquierda. Lo que aparece en pantalla lo decide <code>print()</code>.'],
+        ['p', 'Los textos van siempre entre comillas, como <code>"Ana"</code>. Los números van sin comillas.']
+      ]},
+      { tipo: 'quiz', codigo: `edad = 12\nprint(edad)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['edad', '12', 'Un error', 'edad = 12'], correcta: 1,
+        explicacion: 'print(edad) muestra el valor guardado en edad, no el nombre.' },
+      { tipo: 'reto', titulo: 'Tu ciudad',
+        enunciado: 'Crea una variable llamada <code>ciudad</code> con el nombre de tu ciudad (entre comillas) y muéstrala con <code>print()</code>.',
+        inicial: '# Escribe tu código aquí\n',
+        pistas: ['Empieza con ciudad = "..." y escribe el nombre entre las comillas.', 'En otra línea, escribe print(ciudad).'],
+        solucion: 'ciudad = "Lima"\nprint(ciudad)',
+        checks: [
+          { py: 'isinstance(ciudad, str) and ciudad.strip() != ""', msg: 'Crea una variable llamada ciudad con un texto entre comillas.' },
+          { py: 'salida.strip() == ciudad', msg: 'Muestra el valor con print(ciudad).' }
+        ] }
+    ]},
+    { id: 'variables-2', titulo: 'Cambiar su valor', pasos: [
+      { tipo: 'teoria', titulo: 'Las variables pueden cambiar', bloques: [
+        ['p', 'Si guardas otro valor con el mismo nombre, la variable se queda con el último.'],
+        ['code', `puntos = 10\npuntos = 25\nprint(puntos)`],
+        ['out', '25'],
+        ['p', 'También puedes usar el valor actual para calcular el nuevo:'],
+        ['code', `puntos = puntos + 5`],
+        ['p', 'Python calcula primero la derecha (25 + 5) y guarda el resultado, 30, en <code>puntos</code>.']
+      ]},
+      { tipo: 'quiz', codigo: `x = 3\nx = x + 2\nprint(x)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['3', '2', '5', '32'], correcta: 2,
+        explicacion: 'Primero x vale 3. Luego se calcula 3 + 2 y el resultado, 5, se guarda otra vez en x.' },
+      { tipo: 'reto', titulo: 'Perder una vida',
+        enunciado: 'El jugador empieza con 3 vidas y pierde una. Resta 1 a <code>vidas</code> y muestra el resultado con <code>print()</code>.',
+        inicial: 'vidas = 3\n\n# Resta 1 a vidas\n\n# Muestra vidas con print\n',
+        pistas: ['Para restar 1: vidas = vidas - 1', 'Al final escribe print(vidas).'],
+        solucion: 'vidas = 3\nvidas = vidas - 1\nprint(vidas)',
+        checks: [
+          { py: 'vidas == 2 and "-" in codigo', msg: 'vidas debe terminar valiendo 2, y debes calcularlo restando (vidas - 1).' },
+          { py: 'salida.strip() == "2"', msg: 'Muestra el valor con print(vidas).' }
+        ] }
+    ]},
+    { id: 'variables-3', titulo: 'Tipos de datos', pasos: [
+      { tipo: 'teoria', titulo: 'Cada valor tiene un tipo', bloques: [
+        ['p', 'Python distingue cuatro tipos básicos: <b>str</b> (texto, como <code>"Hola"</code>), <b>int</b> (entero, como <code>7</code>), <b>float</b> (decimal, como <code>1.75</code>) y <b>bool</b> (<code>True</code> o <code>False</code>).'],
+        ['p', 'Con <code>type()</code> puedes preguntarle a Python el tipo de un valor:'],
+        ['code', `print(type("Hola"))\nprint(type(7))\nprint(type(1.75))`],
+        ['out', `<class 'str'>\n<class 'int'>\n<class 'float'>`],
+        ['p', 'Los decimales se escriben con <b>punto</b>, no con coma.']
+      ]},
+      { tipo: 'quiz', pregunta: '¿De qué tipo es el valor 3.14?',
+        opciones: ['str', 'int', 'float', 'bool'], correcta: 2,
+        explicacion: 'Tiene punto decimal, así que es float. Un entero (int) no lleva parte decimal.' },
+      { tipo: 'quiz', codigo: `x = "5"`, pregunta: '¿De qué tipo es x?',
+        opciones: ['int', 'str', 'float', 'bool'], correcta: 1,
+        explicacion: 'Las comillas convierten el 5 en texto. Aunque parezca un número, es un str.' },
+      { tipo: 'reto', titulo: 'Tu ficha',
+        enunciado: 'Crea tres variables: <code>nombre</code> (texto), <code>edad</code> (entero) y <code>altura</code> (decimal, con punto). Muestra las tres con <code>print()</code>, cada una en su línea y en ese orden.',
+        inicial: '# Crea nombre, edad y altura\n\n# Muéstralas con print()\n',
+        pistas: ['Por ejemplo: nombre = "Luz", edad = 9 y altura = 1.32.', 'Después usa print(nombre), print(edad) y print(altura), una debajo de otra.'],
+        solucion: 'nombre = "Luz"\nedad = 9\naltura = 1.32\nprint(nombre)\nprint(edad)\nprint(altura)',
+        checks: [
+          { py: 'isinstance(nombre, str)', msg: 'nombre debe ser un texto entre comillas.' },
+          { py: 'isinstance(edad, int) and not isinstance(edad, bool)', msg: 'edad debe ser un número entero, sin comillas ni punto.' },
+          { py: 'isinstance(altura, float)', msg: 'altura debe ser un decimal con punto, por ejemplo 1.65.' },
+          { py: 'salida.strip().splitlines() == [str(nombre), str(edad), str(altura)]', msg: 'Muestra nombre, edad y altura con print(), una por línea y en ese orden.' }
+        ] }
+    ]},
+    { id: 'variables-4', titulo: 'Mezclar texto y variables', pasos: [
+      { tipo: 'teoria', titulo: 'Texto con variables dentro', bloques: [
+        ['p', 'Para meter el valor de una variable dentro de un texto, pon una <code>f</code> antes de las comillas y escribe el nombre entre llaves.'],
+        ['code', `nombre = "Luz"\nprint(f"Hola, {nombre}")`],
+        ['out', 'Hola, Luz'],
+        ['p', 'Python reemplaza <code>{nombre}</code> por su valor. Funciona también con números:'],
+        ['code', `edad = 9\nprint(f"Tengo {edad} años")`],
+        ['out', 'Tengo 9 años']
+      ]},
+      { tipo: 'quiz', codigo: `color = "azul"\nprint(f"Mi color es {color}")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['Mi color es color', 'Mi color es azul', 'Mi color es {color}', 'Un error'], correcta: 1,
+        explicacion: 'Las llaves se reemplazan por el valor de la variable color.' },
+      { tipo: 'reto', titulo: 'Presentación',
+        enunciado: 'Ya existen las variables <code>nombre</code> y <code>edad</code>. Usa una f-string para mostrar exactamente: <code>Luz tiene 9 años</code>',
+        inicial: 'nombre = "Luz"\nedad = 9\n\n# Escribe tu print con f-string\n',
+        pistas: ['Empieza con print(f"...") y dentro de las comillas usa {nombre}.', 'Quedaría: print(f"{nombre} tiene {edad} años")'],
+        solucion: 'nombre = "Luz"\nedad = 9\nprint(f"{nombre} tiene {edad} años")',
+        checks: [
+          { py: 'salida.strip() == "Luz tiene 9 años"', msg: 'El texto debe ser exactamente: Luz tiene 9 años' },
+          { py: '"{nombre}" in codigo and "{edad}" in codigo', msg: 'Usa las variables dentro de llaves, {nombre} y {edad}, en vez de escribir los valores.' }
+        ] }
+    ]},
+    { id: 'variables-5', titulo: 'Nombres de variables', pasos: [
+      { tipo: 'teoria', titulo: 'Reglas para nombrar variables', bloques: [
+        ['p', 'Un nombre de variable puede tener letras, números y guion bajo (<code>_</code>), pero <b>no puede empezar con un número</b> ni llevar espacios o guiones medios.'],
+        ['code', `puntos = 10\nnombre_completo = "Ana Ruiz"\nnivel2 = 3`],
+        ['p', 'Estos nombres <b>no</b> valen: <code>2nivel</code> (empieza con número), <code>mi nombre</code> (espacio) y <code>mi-nombre</code> (Python lo lee como una resta).'],
+        ['p', 'Además, Python distingue mayúsculas de minúsculas: <code>edad</code> y <code>Edad</code> son dos variables distintas. Lo habitual es escribir todo en minúsculas y separar palabras con guion bajo.']
+      ]},
+      { tipo: 'quiz', pregunta: '¿Cuál es un nombre de variable válido?',
+        opciones: ['2vidas', 'mi puntaje', 'puntaje_max', 'puntaje-max'], correcta: 2,
+        explicacion: 'puntaje_max usa solo letras y guion bajo. Los otros empiezan con número, tienen espacio o usan un guion medio.' },
+      { tipo: 'quiz', codigo: `Edad = 10\nprint(edad)`, pregunta: '¿Qué pasa al ejecutar este programa?',
+        opciones: ['Muestra 10', 'Muestra Edad', 'Da un error, porque edad y Edad son distintas', 'No muestra nada'], correcta: 2,
+        explicacion: 'Se creó Edad con mayúscula, pero se pide edad con minúscula. Python responde con un NameError.' },
+      { tipo: 'reto', titulo: 'Nombre con guion bajo',
+        enunciado: 'Crea una variable llamada <code>nombre_completo</code> con tu nombre y apellido (texto) y muéstrala con <code>print()</code>.',
+        inicial: '# Crea la variable nombre_completo\n',
+        pistas: ['Escribe nombre_completo = "..." con tu nombre entre las comillas.', 'Después, en otra línea: print(nombre_completo)'],
+        solucion: 'nombre_completo = "Ana Ruiz"\nprint(nombre_completo)',
+        checks: [
+          { py: 'isinstance(nombre_completo, str) and nombre_completo.strip() != ""', msg: 'Crea la variable nombre_completo con un texto entre comillas.' },
+          { py: 'salida.strip() == nombre_completo', msg: 'Muestra el valor con print(nombre_completo).' }
+        ] }
+    ]},
+    { id: 'variables-6', titulo: 'Proyecto: tarjeta de presentación', pasos: [
+      { tipo: 'teoria', titulo: 'Juntamos todo lo aprendido', bloques: [
+        ['p', 'Ya sabes guardar valores en variables, distinguir sus tipos y mezclarlos con texto usando f-strings. Un ejemplo completo:'],
+        ['code', `producto = "Cuaderno"\nprecio = 12.5\nprint(f"{producto} vale {precio}")`],
+        ['out', 'Cuaderno vale 12.5'],
+        ['p', 'En el reto final vas a armar tu propia tarjeta de presentación con tres variables y una sola línea de salida.']
+      ]},
+      { tipo: 'quiz', codigo: `total = 3.0\nprint(type(total))`, pregunta: '¿Qué tipo muestra este programa?',
+        opciones: ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'bool'>"], correcta: 1,
+        explicacion: 'Un número con punto decimal, aunque termine en .0, es un float.' },
+      { tipo: 'reto', titulo: 'Tarjeta de presentación',
+        enunciado: 'Crea <code>nombre</code> (texto), <code>edad</code> (entero) y <code>ciudad</code> (texto). Con una f-string, muestra en una sola línea: <code>Me llamo Luz, tengo 9 años y vivo en Lima.</code> (con tus propios datos).',
+        inicial: '# Crea nombre, edad y ciudad\n\n# Muestra la tarjeta con una f-string\n',
+        pistas: ['Crea las tres variables primero, por ejemplo nombre = "Luz", edad = 9, ciudad = "Lima".', 'Usa print(f"Me llamo {nombre}, tengo {edad} años y vivo en {ciudad}.")'],
+        solucion: 'nombre = "Luz"\nedad = 9\nciudad = "Lima"\nprint(f"Me llamo {nombre}, tengo {edad} años y vivo en {ciudad}.")',
+        checks: [
+          { py: 'isinstance(nombre, str) and isinstance(ciudad, str) and isinstance(edad, int) and not isinstance(edad, bool)', msg: 'nombre y ciudad deben ser textos, y edad un número entero.' },
+          { py: '"{nombre}" in codigo and "{edad}" in codigo and "{ciudad}" in codigo', msg: 'Usa las tres variables dentro de llaves: {nombre}, {edad} y {ciudad}.' },
+          { py: 'salida.strip() == f"Me llamo {nombre}, tengo {edad} años y vivo en {ciudad}."', msg: 'El formato debe ser: Me llamo ..., tengo ... años y vivo en ... (con el punto final).' }
+        ] }
+    ]}
+  ]
+},
+{
+  id: 'operadores', titulo: 'Operadores', desc: 'Hacer cálculos con números.',
+  lecciones: [
+    { id: 'ops-1', titulo: 'Aritmética básica', pasos: [
+      { tipo: 'teoria', titulo: 'Sumar, restar, multiplicar y dividir', bloques: [
+        ['p', 'Python funciona como una calculadora. Los operadores básicos son <code>+</code>, <code>-</code>, <code>*</code> (por) y <code>/</code> (dividido).'],
+        ['code', `print(7 + 3)\nprint(7 - 3)\nprint(7 * 3)\nprint(7 / 2)`],
+        ['out', `10\n4\n21\n3.5`],
+        ['p', 'Ojo: la división <code>/</code> siempre da un decimal (<code>float</code>), incluso cuando el resultado es exacto: <code>10 / 2</code> da <code>5.0</code>.'],
+        ['p', 'Puedes usar variables en los cálculos, igual que números.']
+      ]},
+      { tipo: 'quiz', codigo: `print(10 / 2)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['5', '5.0', '2', 'Un error'], correcta: 1,
+        explicacion: 'La división con / siempre devuelve un float, así que el resultado es 5.0.' },
+      { tipo: 'quiz', codigo: `x = 4\ny = 3\nprint(x * y)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['7', '43', '12', '1'], correcta: 2,
+        explicacion: 'x * y multiplica los valores guardados: 4 por 3 es 12.' },
+      { tipo: 'reto', titulo: 'Área de un rectángulo',
+        enunciado: 'Ya existen <code>base</code> y <code>altura</code>. Guarda en una variable <code>area</code> el resultado de multiplicarlas y muéstrala con <code>print()</code>.',
+        inicial: 'base = 8\naltura = 5\n\n# Calcula el área y guárdala en area\n\n# Muestra area\n',
+        pistas: ['area = base * altura', 'Luego, en otra línea: print(area)'],
+        solucion: 'base = 8\naltura = 5\narea = base * altura\nprint(area)',
+        checks: [
+          { py: 'area == 40', msg: 'Guarda en area el resultado de base * altura.' },
+          { py: '"*" in codigo', msg: 'Usa la multiplicación: base * altura.' },
+          { py: 'salida.strip() == "40"', msg: 'Muestra el valor con print(area).' }
+        ] }
+    ]},
+    { id: 'ops-2', titulo: 'División entera y resto', pasos: [
+      { tipo: 'teoria', titulo: 'Cuántas veces cabe y cuánto sobra', bloques: [
+        ['p', 'Dos operadores muy útiles: <code>//</code> (división entera) y <code>%</code> (resto).'],
+        ['code', `print(17 // 5)\nprint(17 % 5)`],
+        ['out', `3\n2`],
+        ['p', 'El 5 cabe <b>3 veces</b> en 17 (15), y <b>sobran 2</b>. Es decir: 17 = 5 × 3 + 2.'],
+        ['p', 'El resto sirve, por ejemplo, para saber si un número es par: con <code>% 2</code>, un número par da 0 y uno impar da 1.'],
+        ['code', `print(10 % 2)\nprint(7 % 2)`],
+        ['out', `0\n1`]
+      ]},
+      { tipo: 'quiz', codigo: `print(20 // 6)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['3', '3.33', '2', '4'], correcta: 0,
+        explicacion: 'El 6 cabe 3 veces en 20 (3 × 6 = 18). // devuelve solo ese 3.' },
+      { tipo: 'quiz', codigo: `print(20 % 6)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['3', '2', '14', '0'], correcta: 1,
+        explicacion: 'Al sacar 3 veces el 6 de 20 (18) sobran 2. % devuelve ese resto.' },
+      { tipo: 'reto', titulo: 'Minutos y segundos',
+        enunciado: 'Un video dura <code>total = 135</code> segundos. Calcula <code>minutos</code> con <code>//</code> y <code>segundos</code> con <code>%</code> (usa 60), y muestra exactamente: <code>2 minutos y 15 segundos</code>',
+        inicial: 'total = 135\n\n# Calcula minutos y segundos\n\n# Muestra: 2 minutos y 15 segundos\n',
+        pistas: ['minutos = total // 60 y segundos = total % 60', 'Muéstralo con print(f"{minutos} minutos y {segundos} segundos")'],
+        solucion: 'total = 135\nminutos = total // 60\nsegundos = total % 60\nprint(f"{minutos} minutos y {segundos} segundos")',
+        checks: [
+          { py: 'minutos == 2 and segundos == 15', msg: 'Usa // para los minutos y % para los segundos que sobran.' },
+          { py: '"//" in codigo and "%" in codigo', msg: 'Calcula con los operadores // y %.' },
+          { py: 'salida.strip() == "2 minutos y 15 segundos"', msg: 'El texto debe ser exactamente: 2 minutos y 15 segundos' }
+        ] }
+    ]},
+    { id: 'ops-3', titulo: 'Potencias y orden', pasos: [
+      { tipo: 'teoria', titulo: 'Potencias y orden de operaciones', bloques: [
+        ['p', 'Para elevar un número a una potencia se usa <code>**</code>: <code>2 ** 3</code> es 2 × 2 × 2.'],
+        ['code', `print(2 ** 3)`],
+        ['out', '8'],
+        ['p', 'Cuando mezclas operadores, Python sigue el mismo orden que en matemáticas: primero los <b>paréntesis</b>, luego <code>**</code>, después <code>*</code> <code>/</code> <code>//</code> <code>%</code>, y al final <code>+</code> y <code>-</code>.'],
+        ['code', `print(2 + 3 * 4)\nprint((2 + 3) * 4)`],
+        ['out', `14\n20`],
+        ['p', 'En caso de duda, usa paréntesis: hacen el código más claro.']
+      ]},
+      { tipo: 'quiz', codigo: `print(10 - 2 * 3)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['24', '4', '16', '-8'], correcta: 1,
+        explicacion: 'Primero se multiplica (2 * 3 = 6) y luego se resta: 10 - 6 = 4.' },
+      { tipo: 'quiz', codigo: `print(3 ** 2)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['6', '9', '32', '5'], correcta: 1,
+        explicacion: '3 ** 2 significa 3 × 3, que es 9. No es 3 × 2.' },
+      { tipo: 'reto', titulo: 'Con paréntesis',
+        enunciado: 'Muestra con un solo <code>print()</code> el resultado de sumar 4 y 6 y luego multiplicar por 5. Usa paréntesis para que la suma se haga primero.',
+        inicial: '# Suma 4 y 6, luego multiplica por 5\n',
+        pistas: ['La suma va entre paréntesis: (4 + 6)', 'Quedaría: print((4 + 6) * 5)'],
+        solucion: 'print((4 + 6) * 5)',
+        checks: [
+          { py: '"(" in codigo.replace("print(", "") and "*" in codigo', msg: 'Usa paréntesis para la suma y el signo * para multiplicar.' },
+          { py: 'salida.strip() == "50"', msg: 'Debe mostrar 50: primero la suma y después la multiplicación.' }
+        ] },
+      { tipo: 'reto', titulo: 'Área de un cuadrado',
+        enunciado: 'Un cuadrado tiene <code>lado = 6</code>. Guarda en <code>area</code> el lado elevado al cuadrado con <code>**</code> y muéstrala.',
+        inicial: 'lado = 6\n\n# Calcula el área con **\n\n# Muestra area\n',
+        pistas: ['El área es lado al cuadrado: lado ** 2', 'area = lado ** 2 y después print(area)'],
+        solucion: 'lado = 6\narea = lado ** 2\nprint(area)',
+        checks: [
+          { py: 'area == 36 and "**" in codigo', msg: 'Guarda en area el resultado de lado ** 2.' },
+          { py: 'salida.strip() == "36"', msg: 'Muestra el valor con print(area).' }
+        ] }
+    ]},
+    { id: 'ops-4', titulo: 'Proyecto: dividir la cuenta', pasos: [
+      { tipo: 'teoria', titulo: 'Redondear resultados', bloques: [
+        ['p', 'Al dividir suelen salir muchos decimales. <code>round(número, cantidad)</code> redondea a la cantidad de decimales que indiques.'],
+        ['code', `print(10 / 3)\nprint(round(10 / 3, 2))`],
+        ['out', `3.3333333333333335\n3.33`],
+        ['p', 'Con lo que ya sabes puedes resolver un problema real: repartir una cuenta entre varias personas.']
+      ]},
+      { tipo: 'quiz', codigo: `print(round(7 / 3, 1))`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['2.3', '2.33', '2', '2.4'], correcta: 0,
+        explicacion: '7 / 3 es 2.333... y round(..., 1) deja un solo decimal: 2.3.' },
+      { tipo: 'reto', titulo: 'Repartir la cuenta',
+        enunciado: 'La cuenta es <code>total = 100</code> y son <code>personas = 3</code>. Calcula <code>cada_uno</code> dividiendo, y muestra con dos decimales (usa <code>round</code>): <code>Cada uno paga 33.33</code>',
+        inicial: 'total = 100\npersonas = 3\n\n# Calcula cada_uno\n\n# Muestra: Cada uno paga 33.33\n',
+        pistas: ['cada_uno = total / personas', 'Muestra con print(f"Cada uno paga {round(cada_uno, 2)}")'],
+        solucion: 'total = 100\npersonas = 3\ncada_uno = total / personas\nprint(f"Cada uno paga {round(cada_uno, 2)}")',
+        checks: [
+          { py: 'round(cada_uno, 2) == 33.33', msg: 'Guarda en cada_uno el resultado de total / personas.' },
+          { py: '"round" in codigo', msg: 'Usa round() para dejar dos decimales.' },
+          { py: 'salida.strip() == "Cada uno paga 33.33"', msg: 'El texto debe ser exactamente: Cada uno paga 33.33' }
+        ] }
+    ]}
+  ]
+},
+{
+  id: 'condicionales', titulo: 'Condicionales', desc: 'Hacer que tu programa tome decisiones.',
+  lecciones: [
+    { id: 'cond-1', titulo: 'Comparaciones', pasos: [
+      { tipo: 'teoria', titulo: 'Preguntas de verdadero o falso', bloques: [
+        ['p', 'Para tomar decisiones, un programa primero necesita hacer preguntas. Los <b>operadores de comparación</b> responden con <code>True</code> (verdadero) o <code>False</code> (falso), un valor de tipo <code>bool</code>.'],
+        ['p', 'Los principales: <code>==</code> (igual), <code>!=</code> (distinto), <code>&lt;</code> (menor), <code>&gt;</code> (mayor), y <code>&lt;=</code> y <code>&gt;=</code> (menor o mayor <i>o igual</i>).'],
+        ['code', `edad = 15\nprint(edad >= 18)\nprint(edad == 15)\nprint(edad != 15)`],
+        ['out', `False\nTrue\nFalse`],
+        ['p', 'Cuidado con la diferencia: <code>=</code> <b>guarda</b> un valor y <code>==</code> <b>compara</b> dos valores.']
+      ]},
+      { tipo: 'quiz', codigo: `print(7 != 7)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['True', 'False', '7', 'Un error'], correcta: 1,
+        explicacion: '!= pregunta si son distintos. 7 y 7 son iguales, así que la respuesta es False.' },
+      { tipo: 'quiz', codigo: `x = 10\nprint(x <= 10)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['True', 'False', '10', 'Un error'], correcta: 0,
+        explicacion: '<= significa menor o igual. 10 es igual a 10, así que es True.' },
+      { tipo: 'quiz', pregunta: '¿Qué operador compara si dos valores son iguales?',
+        opciones: ['=', '==', '!=', '=>'], correcta: 1,
+        explicacion: 'Un solo = guarda un valor en una variable. Para comparar se usan dos: ==.' },
+      { tipo: 'reto', titulo: 'Mayor de edad',
+        enunciado: 'Ya existe <code>edad = 20</code>. Guarda en <code>es_mayor</code> el resultado de preguntar si la edad es 18 o más, y muéstralo con <code>print()</code>.',
+        inicial: 'edad = 20\n\n# Guarda en es_mayor si edad es 18 o más\n\n# Muestra es_mayor\n',
+        pistas: ['es_mayor = edad >= 18', 'Luego, en otra línea: print(es_mayor)'],
+        solucion: 'edad = 20\nes_mayor = edad >= 18\nprint(es_mayor)',
+        checks: [
+          { py: 'es_mayor is True and ">" in codigo', msg: 'Guarda en es_mayor la comparación de edad con 18 usando >=.' },
+          { py: 'salida.strip() == "True"', msg: 'Muestra el valor con print(es_mayor).' },
+          { py: 'correr(codigo.replace("edad = 20", "edad = 15")) == "False"', msg: 'Con una edad menor que 18 debe mostrar False. Usa la variable edad, no escribas True.' }
+        ] }
+    ]},
+    { id: 'cond-2', titulo: 'La sentencia if', pasos: [
+      { tipo: 'teoria', titulo: 'Ejecutar código solo si...', bloques: [
+        ['p', 'Un <b>if</b> ejecuta unas líneas solo cuando su condición es verdadera. Termina con dos puntos <code>:</code>, y las líneas que dependen de él llevan <b>sangría</b> (4 espacios; en el editor, la tecla Tab).'],
+        ['code', `edad = 20\nif edad >= 18:\n    print("Puedes entrar")\nprint("Fin")`],
+        ['out', `Puedes entrar\nFin`],
+        ['p', 'La última línea no tiene sangría, así que no depende del if y siempre se ejecuta. Si la condición es falsa, las líneas con sangría se saltan:'],
+        ['code', `edad = 15\nif edad >= 18:\n    print("Puedes entrar")\nprint("Fin")`],
+        ['out', 'Fin']
+      ]},
+      { tipo: 'quiz', codigo: `n = 5\nif n > 10:\n    print("grande")\nprint("listo")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['grande', 'listo', 'grande y listo', 'Un error'], correcta: 1,
+        explicacion: '5 no es mayor que 10, así que se salta el print("grande"). El print("listo") no tiene sangría y siempre se ejecuta.' },
+      { tipo: 'quiz', pregunta: '¿Qué signo va al final de la línea del if?',
+        opciones: ['Punto y coma (;)', 'Dos puntos (:)', 'Punto (.)', 'Ninguno'], correcta: 1,
+        explicacion: 'Los dos puntos indican que a continuación viene el bloque de líneas con sangría.' },
+      { tipo: 'reto', titulo: 'Aprobar el curso',
+        enunciado: 'Ya existe <code>nota = 7</code>. Con un <code>if</code>, muestra <code>Aprobado</code> solo si la nota es 6 o más. Si no lo es, no debe mostrar nada.',
+        inicial: 'nota = 7\n\n# Si nota es 6 o más, muestra Aprobado\n',
+        pistas: ['Empieza con: if nota >= 6:', 'En la línea siguiente, con 4 espacios al inicio (tecla Tab): print("Aprobado")'],
+        solucion: 'nota = 7\nif nota >= 6:\n    print("Aprobado")',
+        checks: [
+          { py: '"if" in codigo', msg: 'Usa un if para decidir.' },
+          { py: 'salida.strip() == "Aprobado"', msg: 'Con nota = 7 debe mostrar Aprobado.' },
+          { py: 'correr(codigo.replace("nota = 7", "nota = 3")) == ""', msg: 'Con una nota menor que 6 no debe mostrar nada. Revisa la condición del if.' },
+          { py: 'correr(codigo.replace("nota = 7", "nota = 6")) == "Aprobado"', msg: 'Con nota igual a 6 también debe mostrar Aprobado (usa >=).' }
+        ] }
+    ]},
+    { id: 'cond-3', titulo: 'if y else', pasos: [
+      { tipo: 'teoria', titulo: 'Un camino u otro', bloques: [
+        ['p', '<b>else</b> significa «si no». Sus líneas se ejecutan cuando la condición del if es falsa. No lleva condición, pero también termina en <code>:</code>.'],
+        ['code', `nota = 4\nif nota >= 6:\n    print("Aprobado")\nelse:\n    print("Reprobado")`],
+        ['out', 'Reprobado'],
+        ['p', 'Con if y else siempre se ejecuta <b>una y solo una</b> de las dos ramas.']
+      ]},
+      { tipo: 'quiz', codigo: `temp = 30\nif temp > 25:\n    print("Calor")\nelse:\n    print("Fresco")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['Calor', 'Fresco', 'Calor y Fresco', 'Un error'], correcta: 0,
+        explicacion: '30 es mayor que 25, así que se ejecuta el if y se salta el else.' },
+      { tipo: 'quiz', pregunta: '¿Cuántas ramas de un if/else se ejecutan cada vez?',
+        opciones: ['Ninguna', 'Solo una', 'Las dos', 'Depende del orden'], correcta: 1,
+        explicacion: 'Si la condición es verdadera se ejecuta el if; si es falsa, el else. Nunca las dos.' },
+      { tipo: 'reto', titulo: 'Par o impar',
+        enunciado: 'Ya existe <code>numero = 7</code>. Muestra <code>Par</code> si es par o <code>Impar</code> si no lo es. Recuerda que un número es par cuando su resto al dividir entre 2 es 0.',
+        inicial: 'numero = 7\n\n# Muestra Par o Impar\n',
+        pistas: ['Un número es par si numero % 2 == 0.', 'if numero % 2 == 0: muestra Par, y en el else muestra Impar. Recuerda los dos puntos y la sangría.'],
+        solucion: 'numero = 7\nif numero % 2 == 0:\n    print("Par")\nelse:\n    print("Impar")',
+        checks: [
+          { py: '"else" in codigo and "%" in codigo', msg: 'Usa el resto (%) y un if con else.' },
+          { py: 'salida.strip() == "Impar"', msg: 'Con numero = 7 debe mostrar Impar.' },
+          { py: 'correr(codigo.replace("numero = 7", "numero = 8")) == "Par"', msg: 'Con un número par, como 8, debe mostrar Par.' }
+        ] }
+    ]},
+    { id: 'cond-4', titulo: 'Varias opciones con elif', pasos: [
+      { tipo: 'teoria', titulo: 'Más de dos caminos', bloques: [
+        ['p', 'Cuando hay más de dos casos, se añade <b>elif</b> (else + if) entre el if y el else.'],
+        ['code', `nota = 8\nif nota >= 9:\n    print("Sobresaliente")\nelif nota >= 6:\n    print("Aprobado")\nelse:\n    print("Reprobado")`],
+        ['out', 'Aprobado'],
+        ['p', 'Python revisa las condiciones de arriba hacia abajo y ejecuta <b>solo la primera que sea verdadera</b>. Después se salta todo lo demás. Por eso el orden importa.']
+      ]},
+      { tipo: 'quiz', codigo: `x = 15\nif x > 10:\n    print("A")\nelif x > 5:\n    print("B")\nelse:\n    print("C")`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['A', 'B', 'A y B', 'C'], correcta: 0,
+        explicacion: '15 cumple x > 10, así que se ejecuta el primer caso. Aunque también cumple x > 5, Python ya no lo revisa.' },
+      { tipo: 'quiz', codigo: `x = 7\nif x > 10:\n    print("A")\nelif x > 5:\n    print("B")\nelse:\n    print("C")`, pregunta: '¿Y con x = 7?',
+        opciones: ['A', 'B', 'C', 'B y C'], correcta: 1,
+        explicacion: '7 no es mayor que 10, pero sí mayor que 5: se ejecuta el elif y se salta el else.' },
+      { tipo: 'reto', titulo: 'Semáforo',
+        enunciado: 'Ya existe <code>color = "rojo"</code>. Muestra <code>Avanza</code> si es verde, <code>Precaución</code> si es amarillo y <code>Alto</code> en cualquier otro caso. Usa if, elif y else.',
+        inicial: 'color = "rojo"\n\n# verde: Avanza / amarillo: Precaución / otro: Alto\n',
+        pistas: ['Para comparar textos también se usa ==, por ejemplo: if color == "verde":', 'Estructura: if verde, elif amarillo, else. Cada print lleva sangría.'],
+        solucion: 'color = "rojo"\nif color == "verde":\n    print("Avanza")\nelif color == "amarillo":\n    print("Precaución")\nelse:\n    print("Alto")',
+        checks: [
+          { py: '"elif" in codigo', msg: 'Usa elif para el caso del amarillo.' },
+          { py: 'salida.strip() == "Alto"', msg: 'Con color = "rojo" debe mostrar Alto.' },
+          { py: `correr(codigo.replace('color = "rojo"', 'color = "verde"')) == "Avanza"`, msg: 'Con verde debe mostrar Avanza. Deja intacta la línea color = "rojo".' },
+          { py: `correr(codigo.replace('color = "rojo"', 'color = "amarillo"')) == "Precaución"`, msg: 'Con amarillo debe mostrar Precaución (con tilde).' }
+        ] }
+    ]},
+    { id: 'cond-5', titulo: 'and, or y not', pasos: [
+      { tipo: 'teoria', titulo: 'Combinar condiciones', bloques: [
+        ['p', 'Puedes juntar varias condiciones en una sola: <b>and</b> exige que <b>las dos</b> sean verdaderas, <b>or</b> que <b>al menos una</b> lo sea, y <b>not</b> invierte el resultado.'],
+        ['code', `print(True and False)\nprint(True or False)\nprint(not True)`],
+        ['out', `False\nTrue\nFalse`],
+        ['p', 'Ejemplo con una condición doble:'],
+        ['code', `edad = 20\ntiene_carnet = True\nif edad >= 18 and tiene_carnet:\n    print("Puede conducir")`],
+        ['out', 'Puede conducir']
+      ]},
+      { tipo: 'quiz', codigo: `print(True or False)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['True', 'False', 'Un error', 'Nada'], correcta: 0,
+        explicacion: 'Con or basta con que una de las dos sea verdadera.' },
+      { tipo: 'quiz', codigo: `x = 5\nprint(x > 3 and x < 10)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['True', 'False', '5', 'Un error'], correcta: 0,
+        explicacion: 'x > 3 es verdadero y x < 10 también. Con and, las dos se cumplen, así que el resultado es True.' },
+      { tipo: 'reto', titulo: 'Dentro del rango',
+        enunciado: 'Ya existe <code>n = 15</code>. Muestra <code>En rango</code> si <code>n</code> está entre 10 y 20 (incluyendo ambos), o <code>Fuera de rango</code> si no. Usa <code>and</code>.',
+        inicial: 'n = 15\n\n# Muestra En rango o Fuera de rango\n',
+        pistas: ['La condición es: n >= 10 and n <= 20', 'Usa if con esa condición y else para el otro caso.'],
+        solucion: 'n = 15\nif n >= 10 and n <= 20:\n    print("En rango")\nelse:\n    print("Fuera de rango")',
+        checks: [
+          { py: '"and" in codigo', msg: 'Combina las dos condiciones con and.' },
+          { py: 'salida.strip() == "En rango"', msg: 'Con n = 15 debe mostrar En rango.' },
+          { py: 'correr(codigo.replace("n = 15", "n = 25")) == "Fuera de rango"', msg: 'Con 25 debe mostrar Fuera de rango.' },
+          { py: 'correr(codigo.replace("n = 15", "n = 5")) == "Fuera de rango"', msg: 'Con 5 debe mostrar Fuera de rango.' },
+          { py: 'correr(codigo.replace("n = 15", "n = 10")) == "En rango" and correr(codigo.replace("n = 15", "n = 20")) == "En rango"', msg: 'El 10 y el 20 también están en el rango: usa >= y <=.' }
+        ] }
+    ]},
+    { id: 'cond-6', titulo: 'Proyecto: descuentos', pasos: [
+      { tipo: 'teoria', titulo: 'Guardar el resultado de una decisión', bloques: [
+        ['p', 'Dentro de un if, elif o else puedes hacer lo que quieras, por ejemplo guardar un valor en una variable y usarlo después.'],
+        ['code', `puntos = 75\nif puntos >= 90:\n    nivel = "oro"\nelif puntos >= 60:\n    nivel = "plata"\nelse:\n    nivel = "bronce"\nprint(f"Nivel: {nivel}")`],
+        ['out', 'Nivel: plata'],
+        ['p', 'En el proyecto vas a combinar todo: condicionales, operadores y f-strings.']
+      ]},
+      { tipo: 'quiz', codigo: `x = 5\nif x > 3:\n    y = "A"\nelse:\n    y = "B"\nprint(y)`, pregunta: '¿Qué muestra este programa?',
+        opciones: ['A', 'B', 'x', 'Un error'], correcta: 0,
+        explicacion: '5 es mayor que 3, así que y guarda "A" y ese es el valor que se muestra.' },
+      { tipo: 'reto', titulo: 'Tienda con descuentos',
+        enunciado: 'Una tienda da 20% de descuento si la compra es de 100 o más, 10% si es de 50 o más, y nada en otro caso. Con <code>compra = 120</code>, calcula el total y muestra: <code>Total a pagar: 96.0</code>. Usa if, elif y else.',
+        inicial: 'compra = 120\n\n# 20% si compra >= 100, 10% si compra >= 50, 0% en otro caso\n\n# Muestra: Total a pagar: 96.0\n',
+        pistas: ['Guarda el porcentaje en una variable descuento usando if, elif y else.', 'El total es compra - compra * descuento / 100. Muéstralo con print(f"Total a pagar: {total}").'],
+        solucion: 'compra = 120\nif compra >= 100:\n    descuento = 20\nelif compra >= 50:\n    descuento = 10\nelse:\n    descuento = 0\ntotal = compra - compra * descuento / 100\nprint(f"Total a pagar: {total}")',
+        checks: [
+          { py: '"elif" in codigo and "else" in codigo', msg: 'Usa if, elif y else para los tres tramos de descuento.' },
+          { py: 'salida.strip().startswith("Total a pagar:")', msg: 'La salida debe empezar con: Total a pagar:' },
+          { py: 'abs(float(salida.split()[-1]) - 96) < 0.01', msg: 'Con compra = 120 el total debe ser 96.0 (20% de descuento).' },
+          { py: 'abs(float(correr(codigo.replace("compra = 120", "compra = 60")).split()[-1]) - 54) < 0.01', msg: 'Con una compra de 60 el descuento es 10% y el total 54.0.' },
+          { py: 'abs(float(correr(codigo.replace("compra = 120", "compra = 30")).split()[-1]) - 30) < 0.01', msg: 'Con una compra de 30 no hay descuento: el total es 30.0.' }
+        ] }
+    ]}
+  ]
+}
+];
+
+/* ===== Quiz final de cada unidad: 8 preguntas; se mezclan el orden de las preguntas y de las opciones en cada intento ===== */
+const QUIZ = {
+  intro: [
+    { codigo: `print("Python")`, pregunta: '¿Qué muestra este programa?', opciones: ['Python', '"Python"', 'print', 'Un error'], correcta: 0,
+      explicacion: 'print() muestra el texto sin las comillas.' },
+    { pregunta: '¿Qué hace la función print()?', opciones: ['Guarda un valor', 'Muestra algo en pantalla', 'Borra la pantalla', 'Suma números'], correcta: 1,
+      explicacion: 'print() muestra en pantalla lo que va entre sus paréntesis.' },
+    { codigo: `print(4 + 6)`, pregunta: '¿Qué muestra este programa?', opciones: ['4 + 6', '10', '46', 'Un error'], correcta: 1,
+      explicacion: 'Sin comillas, Python calcula la suma y muestra 10.' },
+    { codigo: `print("4 + 6")`, pregunta: '¿Qué muestra este programa?', opciones: ['10', '4 + 6', '46', 'Un error'], correcta: 1,
+      explicacion: 'Con comillas es texto: se muestra tal cual, sin calcular.' },
+    { codigo: `print("Hola", "mundo")`, pregunta: '¿Qué muestra este programa?', opciones: ['Holamundo', 'Hola mundo', 'Hola, mundo', 'Un error'], correcta: 1,
+      explicacion: 'La coma dentro de print() separa los valores con un espacio.' },
+    { codigo: `# print("A")\nprint("B")\nprint("C")`, pregunta: '¿Qué muestra este programa?', opciones: ['A, B y C', 'B y C', 'Solo A', 'Un error'], correcta: 1,
+      explicacion: 'La primera línea es un comentario y se ignora. Se muestran B y C.' },
+    { pregunta: '¿Cuál de estas líneas tiene un error?', opciones: [`print("Hola")`, `print('Hola')`, `print("Hola)`, `print(5)`], correcta: 2,
+      explicacion: 'En print("Hola) falta cerrar las comillas.' },
+    { pregunta: '¿En qué orden ejecuta Python las líneas de un programa?', opciones: ['De arriba hacia abajo', 'De abajo hacia arriba', 'Primero las que tienen print', 'Al azar'], correcta: 0,
+      explicacion: 'Python lee el programa línea por línea, de arriba hacia abajo.' }
+  ],
+  variables: [
+    { codigo: `precio = 15\nprint(precio)`, pregunta: '¿Qué muestra este programa?', opciones: ['precio', '15', 'precio = 15', 'Un error'], correcta: 1,
+      explicacion: 'print(precio) muestra el valor guardado, 15, no el nombre.' },
+    { codigo: `n = 2\nn = n + 3\nprint(n)`, pregunta: '¿Qué muestra este programa?', opciones: ['2', '3', '5', '23'], correcta: 2,
+      explicacion: 'n empieza en 2; luego se calcula 2 + 3 y el 5 se guarda en n.' },
+    { codigo: `x = "25"`, pregunta: '¿De qué tipo es x?', opciones: ['int', 'str', 'float', 'bool'], correcta: 1,
+      explicacion: 'Las comillas lo convierten en texto (str), aunque parezca un número.' },
+    { codigo: `print(type(2.5))`, pregunta: '¿Qué muestra este programa?', opciones: ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'bool'>"], correcta: 1,
+      explicacion: 'Un número con punto decimal es un float.' },
+    { pregunta: '¿Cuál es un nombre de variable válido?', opciones: ['1punto', 'mi_puntaje', 'mi puntaje', 'mi-puntaje'], correcta: 1,
+      explicacion: 'Solo mi_puntaje usa letras y guion bajo, sin empezar con número ni llevar espacios o guiones medios.' },
+    { codigo: `Nombre = "Ana"\nprint(nombre)`, pregunta: '¿Qué pasa al ejecutar este programa?', opciones: ['Muestra Ana', 'Muestra nombre', 'Da un error, porque Nombre y nombre son distintas', 'No muestra nada'], correcta: 2,
+      explicacion: 'Python distingue mayúsculas de minúsculas, así que nombre no existe.' },
+    { codigo: `ciudad = "Lima"\nprint(f"Vivo en {ciudad}")`, pregunta: '¿Qué muestra este programa?', opciones: ['Vivo en ciudad', 'Vivo en Lima', 'Vivo en {ciudad}', 'Un error'], correcta: 1,
+      explicacion: 'Con la f delante, las llaves se reemplazan por el valor de la variable.' },
+    { pregunta: '¿Qué hace el signo = en Python?', opciones: ['Compara dos valores', 'Guarda un valor en una variable', 'Suma dos números', 'Muestra un valor'], correcta: 1,
+      explicacion: 'El signo = asigna: guarda el valor de la derecha en el nombre de la izquierda.' }
+  ],
+  operadores: [
+    { codigo: `print(9 // 2)`, pregunta: '¿Qué muestra este programa?', opciones: ['4', '4.5', '5', '1'], correcta: 0,
+      explicacion: 'El 2 cabe 4 veces en 9. // devuelve solo esa parte entera.' },
+    { codigo: `print(9 % 2)`, pregunta: '¿Qué muestra este programa?', opciones: ['4', '1', '0', '4.5'], correcta: 1,
+      explicacion: 'Al sacar 4 veces el 2 de 9 sobra 1. % devuelve el resto.' },
+    { codigo: `print(9 / 3)`, pregunta: '¿Qué muestra este programa?', opciones: ['3', '3.0', '0', 'Un error'], correcta: 1,
+      explicacion: 'La división con / siempre da un decimal (float), aunque sea exacta.' },
+    { codigo: `print(2 + 3 * 4)`, pregunta: '¿Qué muestra este programa?', opciones: ['20', '14', '24', '9'], correcta: 1,
+      explicacion: 'Primero se multiplica (3 * 4 = 12) y luego se suma 2: 14.' },
+    { codigo: `print((2 + 3) * 4)`, pregunta: '¿Qué muestra este programa?', opciones: ['20', '14', '24', '9'], correcta: 0,
+      explicacion: 'Los paréntesis se resuelven primero: 5 * 4 = 20.' },
+    { codigo: `print(2 ** 4)`, pregunta: '¿Qué muestra este programa?', opciones: ['8', '6', '16', '24'], correcta: 2,
+      explicacion: '2 ** 4 es 2 × 2 × 2 × 2 = 16.' },
+    { codigo: `print(round(3.14159, 2))`, pregunta: '¿Qué muestra este programa?', opciones: ['3', '3.1', '3.14', '3.142'], correcta: 2,
+      explicacion: 'round(..., 2) deja dos decimales: 3.14.' },
+    { codigo: `a = 10\nb = 4\nprint(a - b * 2)`, pregunta: '¿Qué muestra este programa?', opciones: ['12', '2', '-2', '6'], correcta: 1,
+      explicacion: 'Primero se multiplica b * 2 = 8 y luego 10 - 8 = 2.' }
+  ],
+  condicionales: [
+    { codigo: `print(5 > 8)`, pregunta: '¿Qué muestra este programa?', opciones: ['True', 'False', '5', 'Un error'], correcta: 1,
+      explicacion: '5 no es mayor que 8, así que la comparación es False.' },
+    { pregunta: '¿Qué diferencia hay entre = y ==?', opciones: ['Ninguna', '= guarda un valor y == compara dos valores', '= compara y == guarda', '== solo sirve con texto'], correcta: 1,
+      explicacion: 'Un solo = asigna un valor a una variable; dos == preguntan si dos valores son iguales.' },
+    { codigo: `x = 8\nif x > 10:\n    print("A")\nprint("B")`, pregunta: '¿Qué muestra este programa?', opciones: ['A', 'B', 'A y B', 'Nada'], correcta: 1,
+      explicacion: 'La condición es falsa, así que se salta print("A"). print("B") no tiene sangría y siempre se ejecuta.' },
+    { codigo: `x = 12\nif x > 10:\n    print("A")\nelse:\n    print("B")`, pregunta: '¿Qué muestra este programa?', opciones: ['A', 'B', 'A y B', 'Un error'], correcta: 0,
+      explicacion: '12 es mayor que 10: se ejecuta el if y el else se salta.' },
+    { codigo: `n = 5\nif n > 3:\n    print("X")\nelif n > 1:\n    print("Y")\nelse:\n    print("Z")`, pregunta: '¿Qué muestra este programa?', opciones: ['X', 'Y', 'X y Y', 'Z'], correcta: 0,
+      explicacion: '5 > 3 es verdadero, así que se ejecuta la primera rama y Python ya no revisa las demás.' },
+    { codigo: `edad = 20\nprint(edad >= 18 and edad < 30)`, pregunta: '¿Qué muestra este programa?', opciones: ['True', 'False', '20', 'Un error'], correcta: 0,
+      explicacion: 'Las dos condiciones son verdaderas y, con and, eso da True.' },
+    { codigo: `print(not (3 > 5))`, pregunta: '¿Qué muestra este programa?', opciones: ['True', 'False', '3', 'Un error'], correcta: 0,
+      explicacion: '3 > 5 es False y not lo invierte: True.' },
+    { codigo: `if x > 5\n    print("grande")`, pregunta: '¿Qué le falta a este código para funcionar?', opciones: ['Los dos puntos (:) al final del if', 'Un punto y coma al final', 'Comillas alrededor de x', 'Nada, está bien'], correcta: 0,
+      explicacion: 'La línea del if debe terminar con dos puntos.' }
+  ]
+};
+UNIDADES.forEach(u => u.lecciones.push({
+  id: u.id + '-quiz', titulo: 'Quiz: ' + u.titulo, esQuiz: true,
+  pasos: QUIZ[u.id].map(q => ({ tipo: 'quiz', ...q }))
+}));
+const LECCIONES = UNIDADES.flatMap(u => u.lecciones.map(l => ({ ...l, unidad: u.id })));
+
+const TECLAS = [
+  { l: 'Tab', v: '    ', n: 'Sangría' }, { l: '"', v: '"', n: 'Comillas dobles' }, { l: "'", v: "'", n: 'Comilla simple' },
+  { l: '(', v: '(', n: 'Abrir paréntesis' }, { l: ')', v: ')', n: 'Cerrar paréntesis' }, { l: '=', v: '=', n: 'Igual' },
+  { l: '+', v: '+', n: 'Más' }, { l: '-', v: '-', n: 'Menos' }, { l: '*', v: '*', n: 'Por' }, { l: '/', v: '/', n: 'Dividido' },
+  { l: '//', v: '//', n: 'División entera' }, { l: '%', v: '%', n: 'Resto' }, { l: '**', v: '**', n: 'Potencia' },
+  { l: '{', v: '{', n: 'Abrir llave' }, { l: '}', v: '}', n: 'Cerrar llave' }, { l: ':', v: ':', n: 'Dos puntos' },
+  { l: '==', v: '==', n: 'Igual a' }, { l: '!=', v: '!=', n: 'Distinto de' }, { l: '<', v: '<', n: 'Menor que' }, { l: '>', v: '>', n: 'Mayor que' },
+  { l: '#', v: '#', n: 'Comentario' }, { l: '¡', v: '¡', n: 'Exclamación de apertura' }, { l: '¿', v: '¿', n: 'Interrogación de apertura' }
+];
+
+/* ================= ICONOS ================= */
+const IC = {
+  llama: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF6B3D" d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-10z"/></svg>',
+  estrella: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><polygon fill="#FFC21A" stroke="#17246B" stroke-width="1.5" stroke-linejoin="round" points="12,2 15,9 22,9.5 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9.5 9,9"/></svg>',
+  check: '<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  candado: '<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
+  chev: '<svg class="chev" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  checkChico: '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="var(--ok-btn)"/><path d="M6.5 12.5l3.5 3.5 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  x: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+  sonidoOn: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  sonidoOff: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 9.5l5 5M22 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+};
+
+/* ================= ESTADO ================= */
+const CLAVE = 'cuaderno-python-v1';
+let est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: true, intro: false, abiertas: {} };
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+  if (g && typeof g === 'object') est = { ...est, ...g };
+} catch (e) {}
+// ¿Este navegador o visor puede guardar el progreso? (algunos visores de archivos no lo permiten)
+const almacenOk = (() => {
+  try { const k = '__prueba'; localStorage.setItem(k, '1'); const v = localStorage.getItem(k) === '1'; localStorage.removeItem(k); return v; }
+  catch (e) { return false; }
+})();
+const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(est)); } catch (e) {} };
+const fecha = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const hoy = () => fecha(new Date());
+const ayer = () => { const d = new Date(); d.setDate(d.getDate() - 1); return fecha(d); };
+const rachaVigente = () => (est.ultimoDia === hoy() || est.ultimoDia === ayer()) ? est.racha : 0;
+
+let vista = est.intro ? 'ruta' : 'bienvenida';
+let L = null;
+let bv = 0;
+let tabLibre = false;
+
+/* ================= SONIDO (Web Audio, sin archivos) ================= */
+let ac = null;
+function audio() {
+  if (!est.sonido) return null;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  } catch (e) { return null; }
+}
+function tono(freq, inicio, dur, tipo = 'sine', vol = 0.16) {
+  const a = audio();
+  if (!a) return;
+  const t = a.currentTime + inicio;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = tipo;
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+const SONIDO = {
+  ok()  { tono(659, 0, 0.14, 'triangle'); tono(880, 0.11, 0.24, 'triangle'); },
+  mal() { tono(220, 0, 0.16, 'sawtooth', 0.09); tono(165, 0.13, 0.3, 'sawtooth', 0.09); },
+  fin() { [523, 659, 784, 1047].forEach((f, i) => tono(f, i * 0.12, 0.22, 'triangle')); tono(1319, 0.5, 0.5, 'triangle', 0.14); },
+  tic() { tono(520, 0, 0.05, 'sine', 0.07); }
+};
+function actualizarSonido() {
+  document.querySelectorAll('.snd').forEach(b => {
+    b.innerHTML = est.sonido ? IC.sonidoOn : IC.sonidoOff;
+    b.setAttribute('aria-pressed', String(est.sonido));
+    b.setAttribute('aria-label', est.sonido ? 'Sonido activado. Toca para silenciar' : 'Sonido desactivado. Toca para activar');
+  });
+  document.querySelectorAll('.snd-txt').forEach(b => { b.textContent = est.sonido ? 'Sonido: activado' : 'Sonido: desactivado'; });
+}
+function alternarSonido() {
+  est.sonido = !est.sonido;
+  guardar();
+  actualizarSonido();
+  if (est.sonido) SONIDO.ok();
+}
+
+/* ================= PYTHON (Pyodide) ================= */
+let py = null;
+let pyEstado = 'idle';
+
+async function iniciarPyodide() {
+  try { py = await window.loadPyodide({ indexURL: PY_URL }); pyEstado = 'listo'; }
+  catch (e) { pyEstado = 'error'; }
+  estadoPy();
+}
+
+// Se puede llamar varias veces: si un intento anterior falló (por ejemplo, sin internet), vuelve a intentarlo
+function cargarPython() {
+  if (pyEstado === 'cargando' || pyEstado === 'listo') return;
+  pyEstado = 'cargando'; estadoPy();
+  if (window.loadPyodide) { iniciarPyodide(); return; }
+  const s = document.createElement('script');
+  s.src = PY_URL + 'pyodide.js';
+  s.onload = iniciarPyodide;
+  s.onerror = () => { s.remove(); pyEstado = 'error'; estadoPy(); };
+  document.head.appendChild(s);
+}
+
+function estadoPy() {
+  const el = $('#estadoPy');
+  if (el) {
+    el.dataset.e = pyEstado;
+    el.innerHTML = pyEstado === 'listo' ? 'Python listo.'
+      : pyEstado === 'error' ? 'No se pudo cargar Python. La primera vez necesita internet. <button class="enlace" id="btnReintentarPy">Reintentar</button>'
+      : 'Cargando Python… la primera vez tarda unos segundos.';
+  }
+  const b = $('#btnEj');
+  if (b) b.disabled = pyEstado !== 'listo';
+}
+
+// Si vuelve la conexión, reintenta solo
+window.addEventListener('online', () => { if (pyEstado === 'error') cargarPython(); });
+
+function traducirError(msg) {
+  const l = String(msg).trim().split('\n').filter(Boolean);
+  const ultima = l[l.length - 1] || 'Error';
+  let linea = null;
+  for (const t of l) { const m = t.match(/File "<exec>", line (\d+)/); if (m) linea = m[1]; }
+  let ayuda = '', m;
+  if ((m = ultima.match(/^NameError: name '(.+)' is not defined/))) ayuda = `Python no conoce el nombre «${m[1]}». Revisa que lo hayas creado antes y que esté escrito igual, con las mismas mayúsculas.`;
+  else if (/^IndentationError/.test(ultima)) ayuda = 'Revisa la sangría: las líneas dentro de un if, elif o else llevan 4 espacios al inicio (usa la tecla Tab) y las demás, ninguno.';
+  else if (/^SyntaxError: expected ':'/.test(ultima)) ayuda = 'Falta el signo : (dos puntos) al final de la línea del if, elif o else.';
+  else if (/^SyntaxError/.test(ultima)) ayuda = 'Hay un error de escritura: revisa que las comillas y los paréntesis estén cerrados.';
+  else if (/^TypeError/.test(ultima)) ayuda = 'Estás mezclando valores que no se pueden combinar así, por ejemplo texto con números.';
+  return { ultima, linea, ayuda };
+}
+
+async function ejecutar(codigo) {
+  const lineas = [];
+  py.setStdout({ batched: s => lineas.push(s) });
+  py.setStderr({ batched: s => lineas.push(s) });
+  const ns = py.runPython('dict()');
+  let error = null;
+  try { py.runPython(codigo, { globals: ns }); }
+  catch (e) { error = traducirError(e.message || e); }
+  try { py.runPython('import sys\nsys.stdout.flush()'); } catch (e) {}
+  return { salida: lineas.join('\n'), error, ns };
+}
+
+function mostrarSalida(r) {
+  const box = $('#salida'), tx = $('#salidaTx');
+  if (!box || !tx) return;
+  box.classList.toggle('err', !!r.error);
+  let t = r.salida;
+  if (r.error) {
+    t += (t ? '\n' : '') + (r.error.linea ? `Línea ${r.error.linea}: ` : '') + r.error.ultima;
+    if (r.error.ayuda) t += '\n\n' + r.error.ayuda;
+  }
+  tx.textContent = t || '(Sin salida. Usa print() para mostrar algo.)';
+}
+
+/* ================= RENDER ================= */
+function render() {
+  if (vista === 'bienvenida') renderBienvenida();
+  else if (vista === 'copia') renderCopia();
+  else if (vista === 'ruta') renderRuta();
+  else if (vista === 'leccion') renderLeccion();
+  else renderFin();
+  window.scrollTo(0, 0);
+}
+
+const BV_PAGES = [
+  `<h1>Aprende Python escribiendo código</h1>
+   <p>Lecciones cortas en español, con práctica real en tu propio teléfono y sin instalar nada.</p>
+   <pre class="cod"><code>print("Hola")</code></pre>
+   <div class="sal"><span class="etq">Salida</span><pre>Hola</pre></div>
+   <p>Así se ve un programa de Python y lo que hace. Tú vas a escribir los tuyos desde la primera lección.</p>
+   <p style="font-size:15px;color:var(--lapiz)">¿Ya habías usado esta página? <button class="enlace" id="btnCopia" style="font-size:15px">Recuperar mi progreso</button></p>`,
+  `<h1>Así funciona cada lección</h1>
+   <ol class="como">
+     <li><span class="n">1</span><div><b>Lee</b> una idea corta con ejemplos.</div></li>
+     <li><span class="n">2</span><div><b>Responde</b> preguntas rápidas. Si fallas, te explicamos por qué.</div></li>
+     <li><span class="n">3</span><div><b>Practica</b> escribiendo código. Lo ejecutas y la app comprueba tu respuesta.</div></li>
+     <li><span class="n">4</span><div><b>Demuestra</b> lo aprendido con un quiz de 8 preguntas al final de cada unidad.</div></li>
+   </ol>`,
+  `<h1>Antes de empezar</h1>
+   <p>Un sonido te avisa si acertaste o no. Puedes activarlo o silenciarlo cuando quieras con el botón del altavoz.</p>
+   <div class="acciones"><button class="btn2 snd-txt" id="btnSonidoBv"></button><button class="btn2" id="btnProbar">Probar sonido</button></div>
+   <p>Entra un rato cada día: cada día seguido suma a tu racha.</p>
+   <p>Las lecciones y los quiz funcionan sin conexión. Los retos de código necesitan internet la primera vez para cargar Python.</p>`
+];
+
+function renderBienvenida() {
+  const ultima = bv === BV_PAGES.length - 1;
+  $('#app').innerHTML = `
+    <main class="bv">
+      <div class="bv-cuerpo">${BV_PAGES[bv]}</div>
+      <div class="puntos" aria-hidden="true">${BV_PAGES.map((_, k) => `<span class="punto ${k === bv ? 'act' : ''}"></span>`).join('')}</div>
+      <button class="btn" id="btnBvSig">${ultima ? 'Empezar' : 'Siguiente'}</button>
+      ${ultima ? '' : '<button class="enlace" id="btnBvSaltar" style="align-self:center;margin-top:10px">Saltar introducción</button>'}
+    </main>`;
+  actualizarSonido();
+}
+
+function renderRuta() {
+  const actual = LECCIONES.findIndex(l => !est.completadas.includes(l.id));
+  const unidadActual = actual === -1 ? null : LECCIONES[actual].unidad;
+  let html = '';
+  let gi = 0, nl = 0;
+  UNIDADES.forEach(u => {
+    const n = u.lecciones.length;
+    const hechas = u.lecciones.filter(l => est.completadas.includes(l.id)).length;
+    const completa = hechas === n;
+    // Por defecto solo está desplegada la unidad en la que vas; lo que el usuario abra o cierre se recuerda
+    const abierta = u.id in est.abiertas ? !!est.abiertas[u.id] : u.id === unidadActual;
+    html += `<section class="unidad">
+      <button class="u-cab" data-toggle="${u.id}" aria-expanded="${abierta}" aria-controls="u-${u.id}">
+        <span class="u-txt"><span class="u-tit">${esc(u.titulo)}${completa ? `<span class="u-ok" role="img" aria-label="Unidad completada">${IC.checkChico}</span>` : ''}</span>
+        <span class="u-desc">${esc(u.desc)} ${hechas} de ${n} completadas.</span></span>
+        ${IC.chev}
+      </button>
+      <div class="meter" role="progressbar" aria-label="Progreso de ${esc(u.titulo)}" aria-valuemin="0" aria-valuemax="${n}" aria-valuenow="${hechas}"><i style="width:${(hechas / n) * 100}%"></i></div>
+    </section>
+    <div class="u-lecs" id="u-${u.id}" ${abierta ? '' : 'hidden'}>`;
+    u.lecciones.forEach((l, k) => {
+      const i = gi++;
+      const hecha = est.completadas.includes(l.id);
+      const esActual = i === actual;
+      const cls = (hecha ? 'hecho' : esActual ? 'actual' : 'bloq') + (l.esQuiz ? ' quiz' : '');
+      const bloq = !hecha && !esActual;
+      if (!l.esQuiz) nl++;
+      const dx = Math.round(Math.sin(k * 1.2) * 58);
+      const icono = hecha ? IC.check : esActual ? (l.esQuiz ? '?' : nl) : IC.candado;
+      const nombreA11y = (l.esQuiz ? 'Quiz de la unidad ' + u.titulo : 'Lección ' + nl + ': ' + l.titulo) + (hecha ? ', completado' : esActual ? ', siguiente' : ', bloqueado');
+      html += `<button class="nodo ${cls}" data-leccion="${i}" data-unidad="${u.id}" style="--dx:${dx}px" ${bloq ? 'disabled' : ''} aria-label="${esc(nombreA11y)}">
+        ${esActual ? '<span class="burbuja">' + (l.esQuiz ? 'Quiz' : 'Empezar') + '</span>' : ''}
+        <span class="hexw"><span class="hex"><i>${icono}</i></span></span>
+        <span class="nombre">${esc(l.titulo)}</span></button>`;
+    });
+    html += `</div>`;
+  });
+  html += `<section class="unidad proximo"><span class="u-tit">Próximamente</span><span class="u-desc">Bucles, listas y funciones.</span></section>`;
+  $('#app').innerHTML = `
+    <header class="barra">
+      <div class="marca">Cuaderno de Python</div>
+      <div class="datos">
+        <span class="dato" title="Días seguidos">${IC.llama}<span>${rachaVigente()}</span></span>
+        <span class="dato" title="Puntos de experiencia">${IC.estrella}<span>${est.xp}</span></span>
+        <button class="snd" id="btnSonido"></button>
+      </div>
+    </header>
+    ${almacenOk ? '' : `<div class="aviso" role="alert"><b>Aquí no se puede guardar tu progreso.</b> Este visor borra los datos al cerrarlo. Ábrelo desde una dirección web (por ejemplo GitHub Pages) o guarda tu código con «Guardar o recuperar progreso» cada vez que termines.</div>`}
+    <div class="acc-barra"><button class="enlace" data-acc="abrir">Desplegar todo</button><button class="enlace" data-acc="cerrar">Plegar todo</button></div>
+    <div class="ruta" id="ruta"><svg class="trazo" id="trazo" aria-hidden="true"></svg>${html}</div>
+    <p class="nota">${actual === -1 ? '¡Completaste todas las lecciones disponibles! Vuelve pronto por más.<br>' : ''}El progreso se guarda en este navegador.<br>
+      <button class="enlace" id="btnCopia">Guardar o recuperar progreso</button><br>
+      <button class="enlace" id="btnIntro">Ver introducción</button> · <button class="enlace" id="btnReiniciar">Reiniciar progreso</button>${location.protocol === 'file:' ? '<br><br>Abriste el archivo directamente: si abres una versión nueva, el progreso no se traslada solo. Usa «Guardar o recuperar progreso» antes de cambiar de versión.' : ''}</p>`;
+  actualizarSonido();
+  requestAnimationFrame(dibujarTrazo);
+}
+
+// Despliega o pliega una unidad sin volver a dibujar toda la ruta (así no se pierde el lugar en la pantalla)
+function fijarUnidad(id, abrir) {
+  const cont = $('#u-' + id), cab = document.querySelector('[data-toggle="' + id + '"]');
+  if (!cont || !cab) return;
+  cont.hidden = !abrir;
+  cab.setAttribute('aria-expanded', String(abrir));
+  est.abiertas = { ...est.abiertas, [id]: abrir };
+}
+function alternarUnidad(id) {
+  const cont = $('#u-' + id);
+  if (!cont) return;
+  fijarUnidad(id, cont.hidden);
+  guardar();
+  dibujarTrazo();
+}
+function plegarTodo(abrir) {
+  UNIDADES.forEach(u => fijarUnidad(u.id, abrir));
+  guardar();
+  dibujarTrazo();
+}
+
+function dibujarTrazo() {
+  const r = $('#ruta'), svg = $('#trazo');
+  if (!r || !svg) return;
+  const base = r.getBoundingClientRect();
+  // Solo se dibuja el camino entre lecciones visibles de una misma unidad
+  const pts = [...r.querySelectorAll('.u-lecs:not([hidden]) .nodo')].map(nodo => {
+    const b = nodo.querySelector('.hexw').getBoundingClientRect();
+    return { u: nodo.dataset.unidad, i: +nodo.dataset.leccion, x: b.left - base.left + b.width / 2, y: b.top - base.top + b.height / 2 };
+  });
+  let d = '';
+  for (let k = 0; k < pts.length - 1; k++) {
+    const a = pts[k], b = pts[k + 1];
+    if (a.u !== b.u) continue;
+    const m = (a.y + b.y) / 2;
+    const hecho = est.completadas.includes(LECCIONES[a.i].id);
+    d += `<path class="${hecho ? 'hecho' : ''}" d="M${a.x} ${a.y} C${a.x} ${m} ${b.x} ${m} ${b.x} ${b.y}"/>`;
+  }
+  svg.setAttribute('viewBox', `0 0 ${base.width} ${base.height}`);
+  svg.innerHTML = d;
+}
+
+function mezclar(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+// Cada intento del quiz mezcla el orden de las preguntas y el de las opciones
+function prepararQuiz(lec) {
+  return mezclar(lec.pasos).map(p => {
+    const orden = mezclar(p.opciones.map((_, k) => k));
+    return { ...p, opciones: orden.map(k => p.opciones[k]), correcta: orden.indexOf(p.correcta) };
+  });
+}
+
+/* ===== Copia de seguridad del progreso =====
+   El navegador guarda el progreso por "sitio". Cada archivo nuevo que se abre (o una copia con otro nombre) cuenta como un sitio distinto
+   y empieza de cero. Con este código se puede llevar el progreso de una versión a otra. */
+function codigoProgreso() {
+  const d = { v: 1, completadas: est.completadas, xp: est.xp, racha: est.racha, ultimoDia: est.ultimoDia, abiertas: est.abiertas };
+  return 'CP1-' + btoa(JSON.stringify(d));
+}
+
+function leerCodigo(txt) {
+  const t = String(txt).replace(/\s+/g, '');
+  if (!t.startsWith('CP1-')) throw new Error('El código debe empezar con CP1-. Cópialo completo.');
+  let d;
+  try { d = JSON.parse(atob(t.slice(4))); } catch (e) { throw new Error('El código no es válido. Revisa que lo hayas copiado completo.'); }
+  if (!d || !Array.isArray(d.completadas)) throw new Error('El código no trae datos de progreso.');
+  const ids = new Set(LECCIONES.map(l => l.id));
+  return {
+    completadas: d.completadas.filter(x => ids.has(x)),
+    xp: Math.max(0, Number(d.xp) || 0),
+    racha: Math.max(0, Number(d.racha) || 0),
+    ultimoDia: typeof d.ultimoDia === 'string' ? d.ultimoDia : null
+  };
+}
+
+// Une el progreso del código con el que ya hay: nunca se pierde nada
+function aplicarProgreso(d) {
+  est.completadas = [...new Set([...est.completadas, ...d.completadas])];
+  est.xp = Math.max(est.xp, d.xp);
+  if (!est.ultimoDia || (d.ultimoDia && d.ultimoDia > est.ultimoDia)) { est.racha = d.racha; est.ultimoDia = d.ultimoDia; }
+  est.intro = true;
+  guardar();
+}
+
+function renderCopia() {
+  $('#app').innerHTML = `
+    <main class="copia">
+      <h1>Guardar o recuperar tu progreso</h1>
+      <p>Tu avance se guarda en este navegador, y cada archivo nuevo que abres cuenta como un sitio distinto, por eso a veces empiezas de cero. Con un código puedes llevar tu progreso a cualquier versión.</p>
+      <h2>1. Guardar</h2>
+      <p>Copia este código y guárdalo en un lugar seguro (por ejemplo, en tus notas).</p>
+      <textarea id="codigoProg" class="cuadro" readonly rows="4" aria-label="Tu código de progreso">${esc(codigoProgreso())}</textarea>
+      <button class="btn2" id="btnCopiar" style="width:100%;margin:10px 0 24px">Copiar código</button>
+      <h2>2. Recuperar</h2>
+      <p>Pega aquí un código que guardaste antes. Se suma a lo que ya tengas, no se borra nada.</p>
+      <textarea id="codigoIn" class="cuadro" rows="4" placeholder="CP1-..." spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Pega aquí tu código de progreso"></textarea>
+      <button class="btn" id="btnAplicar" style="margin:12px 0">Recuperar progreso</button>
+      <div id="msgCopia" role="status" class="msg"></div>
+      <button class="btn2" id="btnRuta" style="width:100%;margin-top:6px">Volver a la ruta</button>
+    </main>`;
+}
+
+function mensajeCopia(tipo, txt) {
+  const m = $('#msgCopia');
+  if (m) { m.className = 'msg ' + tipo; m.textContent = txt; }
+}
+
+async function copiarRapido() {
+  let ok = false;
+  try { await navigator.clipboard.writeText(codigoProgreso()); ok = true; } catch (e) {}
+  const b = $('#btnCopiarFin');
+  if (!ok) { vista = 'copia'; return render(); }   // si el portapapeles no está disponible, se muestra el código para copiarlo a mano
+  if (b) b.textContent = 'Código copiado. Pégalo en tus notas';
+}
+
+async function copiarCodigo() {
+  const ta = $('#codigoProg');
+  let ok = false;
+  try { await navigator.clipboard.writeText(ta.value); ok = true; } catch (e) {}
+  if (!ok) { try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) {} }
+  mensajeCopia(ok ? 'ok' : 'mal', ok ? 'Código copiado.' : 'No se pudo copiar solo. Mantén pulsado el código, elige «Seleccionar todo» y copia.');
+}
+
+function recuperarCodigo() {
+  try {
+    const d = leerCodigo($('#codigoIn').value);
+    const antes = est.completadas.length;
+    aplicarProgreso(d);
+    mensajeCopia('ok', 'Progreso recuperado: ' + est.completadas.length + ' lecciones completadas y ' + est.xp + ' puntos.' + (est.completadas.length === antes ? ' (Ya lo tenías.)' : ''));
+    $('#codigoProg').value = codigoProgreso();
+  } catch (e) { mensajeCopia('mal', e.message); }
+}
+
+function abrirLeccion(i) {
+  const lec = LECCIONES[i];
+  L = { i, p: 0, aciertos: 0, pasos: lec.esQuiz ? prepararQuiz(lec) : lec.pasos };
+  nuevoPaso();
+  vista = 'leccion';
+  cargarPython();
+  render();
+}
+
+function nuevoPaso() {
+  Object.assign(L, { sel: null, respondido: false, correcto: false, pistas: 0, verSol: false, codigo: null });
+}
+
+const paso = () => L.pasos[L.p];
+
+function renderLeccion() {
+  $('#app').innerHTML = `
+    <div class="lec-top">
+      <button class="cerrar" id="btnCerrar" aria-label="Salir de la lección">${IC.x}</button>
+      <div class="progreso" id="segs" role="progressbar" aria-label="Progreso de la lección"></div>
+      <button class="snd" id="btnSonido"></button>
+    </div>
+    <main class="hoja" id="hoja"></main>
+    <footer class="pie"><div class="pie-in"><div id="fb"></div><button class="btn" id="btnPrincipal"></button></div></footer>`;
+  actualizarSonido();
+  pintarPaso();
+}
+
+function bloque(b) {
+  if (b[0] === 'p') return `<p>${b[1]}</p>`;
+  if (b[0] === 'code') return `<pre class="cod"><code>${esc(b[1])}</code></pre>`;
+  return `<div class="sal"><span class="etq">Salida</span><pre>${esc(b[1])}</pre></div>`;
+}
+
+function pintarPaso() {
+  const lec = LECCIONES[L.i], p = paso();
+  $('#segs').innerHTML = L.pasos.map((_, k) => `<span class="seg ${k < L.p ? 'hecho' : k === L.p ? 'actual' : ''}"></span>`).join('');
+  let h = '';
+  if (p.tipo === 'teoria') {
+    h = `<h1>${esc(p.titulo)}</h1>` + p.bloques.map(bloque).join('');
+  } else if (p.tipo === 'quiz') {
+    h = `<h1>${lec.esQuiz ? 'Pregunta ' + (L.p + 1) + ' de ' + L.pasos.length : 'Pregunta rápida'}</h1>`
+      + (p.codigo ? `<pre class="cod"><code>${esc(p.codigo)}</code></pre>` : '')
+      + `<p class="preg">${esc(p.pregunta)}</p>`
+      + `<div class="ops">${p.opciones.map((o, k) => `<button class="op" data-op="${k}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>`;
+  } else {
+    h = `<h1>${esc(p.titulo)}</h1><p>${p.enunciado}</p>
+      <div class="sobre">
+        <textarea id="editor" class="editor" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off" aria-label="Editor de código Python">${esc(L.codigo ?? p.inicial)}</textarea>
+        <div class="teclas" role="toolbar" aria-label="Símbolos rápidos">${TECLAS.map(t => `<button type="button" class="tecla" data-tecla="${esc(t.v)}" aria-label="${esc(t.n)}">${esc(t.l)}</button>`).join('')}</div>
+      </div>
+      <div class="acciones"><button class="btn2" id="btnEj" disabled>Ejecutar</button><button class="btn2" id="btnPista">Pista</button></div>
+      <div class="sal" id="salida"><span class="etq">Salida</span><pre id="salidaTx">Aún no has ejecutado nada.</pre></div>
+      <div id="pistas"></div>
+      <p class="estado" id="estadoPy"></p>`;
+  }
+  $('#hoja').innerHTML = h;
+  $('#fb').innerHTML = '';
+  const b = $('#btnPrincipal');
+  b.className = 'btn';
+  if (p.tipo === 'teoria') { b.textContent = 'Continuar'; b.disabled = false; }
+  else if (p.tipo === 'quiz') { b.textContent = 'Comprobar'; b.disabled = true; }
+  else { b.textContent = 'Comprobar'; b.disabled = false; estadoPy(); }
+}
+
+function setFb(tipo, titulo, texto) {
+  $('#fb').innerHTML = `<div class="fb ${tipo}" role="status"><div><b>${esc(titulo)}</b>${texto ? esc(texto) : ''}</div></div>`;
+}
+
+function accionPrincipal() {
+  const p = paso();
+  if (p.tipo === 'teoria') return siguiente();
+  if (p.tipo === 'quiz') return L.respondido ? siguiente() : comprobarQuiz();
+  return L.correcto ? siguiente() : comprobarReto();
+}
+
+function siguiente() {
+  if (L.p < L.pasos.length - 1) { L.p++; nuevoPaso(); pintarPaso(); window.scrollTo(0, 0); }
+  else terminar();
+}
+
+function elegirOpcion(k) {
+  if (L.respondido) return;
+  L.sel = k;
+  SONIDO.tic();
+  document.querySelectorAll('.op').forEach(o => o.setAttribute('aria-pressed', String(+o.dataset.op === k)));
+  $('#btnPrincipal').disabled = false;
+}
+
+function comprobarQuiz() {
+  const p = paso();
+  L.respondido = true;
+  const bien = L.sel === p.correcta;
+  if (bien) L.aciertos++;
+  document.querySelectorAll('.op').forEach(o => {
+    const k = +o.dataset.op;
+    o.disabled = true;
+    if (k === p.correcta) o.classList.add('ok');
+    else if (k === L.sel) o.classList.add('mal');
+  });
+  (bien ? SONIDO.ok : SONIDO.mal)();
+  setFb(bien ? 'ok' : 'mal', bien ? '¡Correcto!' : 'No es esa.', ' ' + p.explicacion);
+  const b = $('#btnPrincipal');
+  b.textContent = 'Continuar';
+  b.classList.toggle('ok', bien);
+}
+
+async function botonEjecutar() {
+  if (pyEstado !== 'listo') return;
+  const r = await ejecutar($('#editor').value);
+  r.ns.destroy();
+  mostrarSalida(r);
+}
+
+async function comprobarReto() {
+  const p = paso();
+  if (pyEstado !== 'listo') {
+    setFb('mal', pyEstado === 'error' ? 'Python no está disponible.' : 'Python todavía no está listo.',
+      pyEstado === 'error' ? ' Revisa tu conexión y toca Reintentar debajo de la salida.' : ' Espera un momento y vuelve a comprobar.');
+    return;
+  }
+  const codigo = $('#editor').value;
+  const r = await ejecutar(codigo);
+  mostrarSalida(r);
+  if (r.error) { r.ns.destroy(); SONIDO.mal(); setFb('mal', 'Tu código tiene un error.', ' Corrígelo y vuelve a comprobar.'); return; }
+  r.ns.set('salida', r.salida);
+  r.ns.set('codigo', codigo);
+  try { py.runPython(AYUDANTE, { globals: r.ns }); } catch (e) {}
+  let fallo = null;
+  for (const c of p.checks) {
+    let ok = false;
+    try { ok = py.runPython(`bool(${c.py})`, { globals: r.ns }) === true; } catch (e) { ok = false; }
+    if (!ok) { fallo = c.msg; break; }
+  }
+  r.ns.destroy();
+  if (fallo) { SONIDO.mal(); setFb('mal', 'Casi.', ' ' + fallo); return; }
+  L.correcto = true;
+  SONIDO.ok();
+  setFb('ok', '¡Reto superado!', ' Tu código hace lo que pedía el enunciado.');
+  const b = $('#btnPrincipal');
+  b.textContent = 'Continuar';
+  b.classList.add('ok');
+}
+
+function pista() {
+  const p = paso();
+  if (L.pistas < p.pistas.length) L.pistas++;
+  else L.verSol = true;
+  let h = '';
+  for (let k = 0; k < L.pistas; k++) h += `<div class="pista">Pista ${k + 1}: ${esc(p.pistas[k])}</div>`;
+  if (L.verSol) h += `<div class="pista">Una solución posible:<pre class="cod">${esc(p.solucion)}</pre></div>`;
+  $('#pistas').innerHTML = h;
+  const b = $('#btnPista');
+  if (L.verSol) { b.textContent = 'Pista'; b.disabled = true; }
+  else if (L.pistas >= p.pistas.length) b.textContent = 'Ver solución';
+}
+
+function insertar(txt) {
+  const ed = $('#editor');
+  if (!ed) return;
+  const a = ed.selectionStart, b = ed.selectionEnd;
+  ed.value = ed.value.slice(0, a) + txt + ed.value.slice(b);
+  ed.selectionStart = ed.selectionEnd = a + txt.length;
+  ed.focus();
+  L.codigo = ed.value;
+}
+
+function actualizarRacha() {
+  const hoyStr = hoy();
+  if (est.ultimoDia !== hoyStr) { est.racha = est.ultimoDia === ayer() ? est.racha + 1 : 1; est.ultimoDia = hoyStr; }
+}
+
+function terminar() {
+  const lec = LECCIONES[L.i];
+  L.ganado = 0;
+  if (lec.esQuiz) {
+    L.total = L.pasos.length;
+    L.necesarios = Math.ceil(L.total * 0.7);
+    L.aprobado = L.aciertos >= L.necesarios;
+    if (L.aprobado && !est.completadas.includes(lec.id)) { est.completadas.push(lec.id); est.xp += 50; L.ganado = 50; }
+  } else if (!est.completadas.includes(lec.id)) {
+    est.completadas.push(lec.id); est.xp += 30; L.ganado = 30;
+  }
+  actualizarRacha();
+  guardar();
+  vista = 'fin';
+  render();
+  (lec.esQuiz && !L.aprobado ? SONIDO.mal : SONIDO.fin)();
+}
+
+function renderFin() {
+  const lec = LECCIONES[L.i];
+  const sig = LECCIONES[L.i + 1];
+  const u = UNIDADES.find(x => x.id === lec.unidad);
+  const racha = `<div><strong>${rachaVigente()}</strong><span>${rachaVigente() === 1 ? 'día seguido' : 'días seguidos'}</span></div>`;
+  if (lec.esQuiz) {
+    const ok = L.aprobado;
+    $('#app').innerHTML = `
+      <main class="fin">
+        <span class="hexw"><span class="hex ${ok ? '' : 'flojo'}"><i>${L.aciertos}/${L.total}</i></span></span>
+        <h1>${ok ? '¡Quiz aprobado!' : 'Casi lo logras'}</h1>
+        <p>${ok ? 'Acertaste ' + L.aciertos + ' de ' + L.total + ' y terminaste «' + esc(u.titulo) + '». Buen trabajo.'
+               : 'Acertaste ' + L.aciertos + ' de ' + L.total + '. Necesitas ' + L.necesarios + ' para aprobar. Repasa y vuelve a intentarlo: las preguntas cambian de orden.'}</p>
+        <div class="res">
+          ${ok ? `<div><strong>${L.ganado > 0 ? '+' + L.ganado : '0'}</strong><span>${L.ganado > 0 ? 'puntos ganados' : 'ya lo habías aprobado'}</span></div>`
+               : `<div><strong>${L.aciertos}</strong><span>aciertos</span></div>`}
+          ${ok ? racha : `<div><strong>${L.necesarios}</strong><span>para aprobar</span></div>`}
+        </div>
+        ${ok && sig ? `<button class="btn" id="btnSig">Siguiente lección</button>` : ''}
+        ${ok ? '' : `<button class="btn" id="btnReintentar">Intentar de nuevo</button>`}
+        <button class="btn2" id="btnRuta" style="width:100%;margin-bottom:10px">Volver a la ruta</button>
+        <button class="btn2" id="btnCopiarFin" style="width:100%">Copiar mi código de progreso</button>
+      </main>`;
+    return;
+  }
+  $('#app').innerHTML = `
+    <main class="fin">
+      <span class="hexw"><span class="hex"><i>${IC.check}</i></span></span>
+      <h1>¡Lección completada!</h1>
+      <p>${esc(lec.titulo)}</p>
+      <div class="res">
+        <div><strong>${L.ganado > 0 ? '+' + L.ganado : '0'}</strong><span>${L.ganado > 0 ? 'puntos ganados' : 'ya la habías hecho'}</span></div>
+        ${racha}
+      </div>
+      ${sig ? `<button class="btn" id="btnSig">${sig.esQuiz ? 'Ir al quiz de la unidad' : 'Siguiente lección'}</button>` : ''}
+      <button class="btn2" id="btnRuta" style="width:100%;margin-bottom:10px">Volver a la ruta</button>
+      <button class="btn2" id="btnCopiarFin" style="width:100%">Copiar mi código de progreso</button>
+    </main>`;
+}
+
+/* ================= EVENTOS ================= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  audio(); // crea o reanuda el audio dentro de un toque del usuario
+  if (t.classList.contains('snd') && t.id === 'btnSonido') return alternarSonido();
+  if (t.dataset.toggle !== undefined) return alternarUnidad(t.dataset.toggle);
+  if (t.dataset.acc !== undefined) return plegarTodo(t.dataset.acc === 'abrir');
+  if (t.dataset.leccion !== undefined) return abrirLeccion(+t.dataset.leccion);
+  if (t.dataset.op !== undefined) return elegirOpcion(+t.dataset.op);
+  if (t.dataset.tecla !== undefined) return insertar(t.dataset.tecla);
+  switch (t.id) {
+    case 'btnPrincipal': return accionPrincipal();
+    case 'btnEj': return botonEjecutar();
+    case 'btnPista': return pista();
+    case 'btnCopia': vista = 'copia'; return render();
+    case 'btnCopiar': return copiarCodigo();
+    case 'btnCopiarFin': return copiarRapido();
+    case 'btnAplicar': return recuperarCodigo();
+    case 'btnReintentarPy': return cargarPython();
+    case 'btnCerrar': vista = 'ruta'; return render();
+    case 'btnRuta': vista = 'ruta'; return render();
+    case 'btnSig': return abrirLeccion(L.i + 1);
+    case 'btnReintentar': return abrirLeccion(L.i);
+    case 'btnSonidoBv': return alternarSonido();
+    case 'btnProbar': SONIDO.ok(); setTimeout(SONIDO.mal, 650); return;
+    case 'btnBvSaltar': bv = BV_PAGES.length - 1; return render();
+    case 'btnBvSig':
+      if (bv < BV_PAGES.length - 1) { bv++; return render(); }
+      est.intro = true; guardar(); vista = 'ruta'; return render();
+    case 'btnIntro': bv = 0; vista = 'bienvenida'; return render();
+    case 'btnReiniciar':
+      if (confirm('¿Borrar todo tu progreso en este navegador?')) {
+        est = { completadas: [], xp: 0, racha: 0, ultimoDia: null, sonido: est.sonido, intro: true, abiertas: {} };
+        guardar(); render();
+      }
+      return;
+  }
+});
+
+// Evita que los botones de símbolos le quiten el foco al editor (así no se cierra el teclado)
+document.addEventListener('mousedown', e => { if (e.target.closest('.tecla')) e.preventDefault(); });
+
+document.addEventListener('input', e => { if (e.target.id === 'editor' && L) L.codigo = e.target.value; });
+
+document.addEventListener('keydown', e => {
+  if (e.target.id !== 'editor') return;
+  if (e.key === 'Escape') { tabLibre = true; return; }
+  if (e.key === 'Tab' && !e.shiftKey) {
+    if (tabLibre) { tabLibre = false; return; }
+    e.preventDefault(); insertar('    ');
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); botonEjecutar(); }
+});
+
+// Sangría automática: al pulsar Enter conserva la sangría y suma 4 espacios tras una línea que termina en :
+document.addEventListener('beforeinput', e => {
+  if (e.target.id !== 'editor' || e.inputType !== 'insertLineBreak') return;
+  e.preventDefault();
+  const ed = e.target;
+  const antes = ed.value.slice(0, ed.selectionStart);
+  const linea = antes.slice(antes.lastIndexOf('\n') + 1);
+  let sangria = (linea.match(/^ */) || [''])[0];
+  if (/:\s*$/.test(linea.split('#')[0])) sangria += '    ';
+  insertar('\n' + sangria);
+});
+
+window.addEventListener('resize', () => { if (vista === 'ruta') dibujarTrazo(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (vista === 'ruta') dibujarTrazo(); });
+
+render();
+})();
+</script>
+</body>
+</html>
